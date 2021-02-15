@@ -146,7 +146,7 @@ final class ImageGenerator
 	public function isAvailable(): bool
 	{
 		// Quick escape route if the Imagick extension is not loaded / compiled in.
-		if (function_exists('extension_loaded') && !extension_loaded('imagick') !== true)
+		if (function_exists('extension_loaded') && extension_loaded('imagick') !== true)
 		{
 			return false;
 		}
@@ -168,7 +168,7 @@ final class ImageGenerator
 	 *
 	 * @since  1.0.0
 	 */
-	public function getOGImage(string $text, string $template, ?string $extraImage): array
+	public function getOGImage(string $text, string $templateName, ?string $extraImage): array
 	{
 		// Get the image template
 		$template       = array_merge([
@@ -196,7 +196,7 @@ final class ImageGenerator
 			'image-height'      => 630,
 			'image-x'           => 0,
 			'image-y'           => 0,
-		], $this->templates[$template] ?? []);
+		], $this->templates[$templateName] ?? []);
 		$templateWidth  = $template['template-w'] ?? 1200;
 		$templateHeight = $template['template-h'] ?? 630;
 
@@ -204,9 +204,9 @@ final class ImageGenerator
 		$filename         = Path::clean(sprintf("%s/%s%s.png",
 			JPATH_ROOT,
 			$this->outputFolder,
-			md5($text . $template . serialize($template))
+			md5($text . $templateName . serialize($template))
 		));
-		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)));
+		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)), '/');
 		$imageUrl         = Uri::base() . $realRelativePath;
 
 		// If the file exists return early
@@ -225,7 +225,16 @@ final class ImageGenerator
 
 		if ($template['base-image'])
 		{
-			$image = $this->resize(JPATH_ROOT . '/' . $template['base-image'], $templateWidth, $templateHeight);
+			// So, Joomla 4 adds some crap to the image. Let's fix that.
+			$baseImage       = $template['base-image'];
+			$questionMarkPos = strrpos($baseImage, '?');
+
+			if ($questionMarkPos !== false)
+			{
+				$baseImage = substr($baseImage, 0, $questionMarkPos);
+			}
+
+			$image = $this->resize(JPATH_ROOT . '/' . $baseImage, $templateWidth, $templateHeight);
 		}
 		else
 		{
@@ -245,7 +254,7 @@ final class ImageGenerator
 		$theText->setBackgroundColor('transparent');
 
 		/* Font properties */
-		$theText->setFont($fontPath . '/' . $template['text-font']);
+		$theText->setFont($fontPath . $template['text-font']);
 		$theText->setPointSize($template['font-size']);
 
 		/* Create text */
@@ -269,6 +278,7 @@ final class ImageGenerator
 		$theText->newPseudoImage($template['text-width'],
 			$template['text-height'],
 			'caption:' . $text);
+		$theText->setBackgroundColor('transparent');
 
 		// Remove extra height.
 		$theText->trimImage(0.0);
@@ -276,7 +286,7 @@ final class ImageGenerator
 		// Set text color
 		$clut = new Imagick();
 		$clut->newImage(1, 1, new ImagickPixel($template['text-color']));
-		$theText->clutImage($clut);
+		$theText->clutImage($clut, 7);
 		$clut->destroy();
 
 		// Figure out text vertical position
@@ -358,7 +368,14 @@ final class ImageGenerator
 		// Write the image as a PNG file
 		$image->setImageFormat('png');
 
-		File::write($filename, $image);
+		/**
+		 * -- This seems redundant but it's actually a hotfix to Joomla 4's immediate(!) timeouts when there are no FTP
+		 *    credentials (the FTP layer is disabled in Global Configuration). You're welcome.
+		 */
+		if (!@file_put_contents($filename, $image))
+		{
+			File::write($filename, $image);
+		}
 
 		$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
 

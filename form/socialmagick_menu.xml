@@ -69,6 +69,29 @@
                 <option value="1">JYES</option>
             </field>
 
+            <field
+                    name="image_source"
+                    type="list"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="none"
+            >
+                <option value="none">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_NONE</option>
+                <option value="intro">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_INTRO</option>
+                <option value="fulltext">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_FULLTEXT</option>
+                <option value="custom">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_CUSTOMFIELD</option>
+            </field>
+
+            <field
+                    name="image_field"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_DESC"
+                    filter="no_html"
+                    showon="image_source:custom"
+            />
+
         </fieldset>
     </fields>
 </form>
