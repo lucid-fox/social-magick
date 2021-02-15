@@ -9,6 +9,8 @@
 
 namespace LucidFox\SocialMagick;
 
+defined('_JEXEC') || die();
+
 use Exception;
 use Imagick;
 use ImagickPixel;
@@ -80,8 +82,15 @@ final class ImageGenerator
 	 *
 	 * @since   1.0.0
 	 */
-	public function setOGImage(string $text, string $template, ?string $extraImage = null, bool $force = false): void
+	public function applyOGImage(string $text, string $template, ?string $extraImage = null, bool $force = false): void
 	{
+		// Don't try if the server requirements are not met
+		if (!$this->isAvailable())
+		{
+			return;
+		}
+
+		// Make sure we have a front-end, HTML document — otherwise OG images are pointless
 		try
 		{
 			$app      = Factory::getApplication();
@@ -97,9 +106,9 @@ final class ImageGenerator
 			return;
 		}
 
+		// Only run if there's not already an open graph image set or if we're told to forcibly apply one
 		$ogImage = $document->getMetaData('og:image');
 
-		// Only run if there's not already an open graph image set
 		if (!empty($ogImage) && !$force)
 		{
 			return;
@@ -108,7 +117,7 @@ final class ImageGenerator
 		// Try to generate (or get an already generated) image
 		try
 		{
-			[$image, $templateHeight, $templateWidth] = $this->generateOGImage($text, $template, $extraImage);
+			[$image, $templateHeight, $templateWidth] = $this->getOGImage($text, $template, $extraImage);
 		}
 		catch (Exception $e)
 		{
@@ -120,6 +129,11 @@ final class ImageGenerator
 		$document->setMetaData('og:image:alt', stripcslashes($text), 'property');
 		$document->setMetaData('og:image:height', $templateHeight, 'property');
 		$document->setMetaData('og:image:width', $templateWidth, 'property');
+	}
+
+	public function getTemplates(): array
+	{
+		return $this->templates;
 	}
 
 	/**
@@ -142,92 +156,6 @@ final class ImageGenerator
 	}
 
 	/**
-	 * Parse the image templates from the raw options returned by Joomla
-	 *
-	 * @param   mixed  $ogTemplatesRaw  The raw options returned by Joomla
-	 *
-	 * @return  void
-	 *
-	 * @since   1.0.0
-	 */
-	private function parseImageTemplates($ogTemplatesRaw): void
-	{
-		$this->templates = [];
-		$ogTemplatesRaw  = empty($ogTemplatesRaw) ? [] : (array) $ogTemplatesRaw;
-
-		foreach ($ogTemplatesRaw as $variables)
-		{
-			$variables                                    = (array) $variables;
-			$this->templates[$variables['template-name']] = $variables;
-		}
-	}
-
-	/**
-	 * Resize and crop an image
-	 *
-	 * @param   string   $src    The path to the original image.
-	 * @param   numeric  $new_w  New width, in pixels.
-	 * @param   numeric  $new_h  New height, in pixels.
-	 * @param   string   $focus  Focus of the image; default is center.
-	 *
-	 * @return  Imagick
-	 *
-	 * @throws \ImagickException
-	 *
-	 * @since   1.0.0
-	 */
-	private function resize(string $src, $new_w, $new_h, string $focus = 'center'): Imagick
-	{
-		$image = new Imagick($src);
-
-		$w = $image->getImageWidth();
-		$h = $image->getImageHeight();
-
-		$resize_w = $new_w;
-		$resize_h = $h * $new_w / $w;
-
-		if ($w > $h)
-		{
-			$resize_w = $w * $new_h / $h;
-			$resize_h = $new_h;
-
-			if ($resize_w < $new_w)
-			{
-				$resize_w = $new_w;
-				$resize_h = $h * $new_w / $w;
-			}
-		}
-
-		$image->resizeImage($resize_w, $resize_h, Imagick::FILTER_LANCZOS, 0.9);
-
-		switch ($focus)
-		{
-			case 'northwest':
-				$image->cropImage($new_w, $new_h, 0, 0);
-				break;
-
-			default:
-			case 'center':
-				$image->cropImage($new_w, $new_h, ($resize_w - $new_w) / 2, ($resize_h - $new_h) / 2);
-				break;
-
-			case 'northeast':
-				$image->cropImage($new_w, $new_h, $resize_w - $new_w, 0);
-				break;
-
-			case 'southwest':
-				$image->cropImage($new_w, $new_h, 0, $resize_h - $new_h);
-				break;
-
-			case 'southeast':
-				$image->cropImage($new_w, $new_h, $resize_w - $new_w, $resize_h - $new_h);
-				break;
-		}
-
-		return $image;
-	}
-
-	/**
 	 * Returns the generated Open Graph image and its information.
 	 *
 	 * @param   string       $text
@@ -240,17 +168,8 @@ final class ImageGenerator
 	 *
 	 * @since  1.0.0
 	 */
-	private function generateOGImage(string $text, string $template, ?string $extraImage): array
+	public function getOGImage(string $text, string $template, ?string $extraImage): array
 	{
-		// Get the generated image filename and URL
-		$filename         = Path::clean(sprintf("%s/%s%s.png",
-			JPATH_ROOT,
-			$this->outputFolder,
-			md5($text . ' ' . $template
-			)));
-		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)));
-		$imageUrl         = Uri::base() . $realRelativePath;
-
 		// Get the image template
 		$template       = array_merge([
 			'base-image'        => '',
@@ -280,6 +199,15 @@ final class ImageGenerator
 		], $this->templates[$template] ?? []);
 		$templateWidth  = $template['template-w'] ?? 1200;
 		$templateHeight = $template['template-h'] ?? 630;
+
+		// Get the generated image filename and URL
+		$filename         = Path::clean(sprintf("%s/%s%s.png",
+			JPATH_ROOT,
+			$this->outputFolder,
+			md5($text . $template . serialize($template))
+		));
+		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)));
+		$imageUrl         = Uri::base() . $realRelativePath;
 
 		// If the file exists return early
 		if (@file_exists($filename) && !$this->devMode)
@@ -435,5 +363,91 @@ final class ImageGenerator
 		$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
 
 		return [$imageUrl . '?' . $mediaVersion, $templateWidth, $templateHeight];
+	}
+
+	/**
+	 * Parse the image templates from the raw options returned by Joomla
+	 *
+	 * @param   mixed  $ogTemplatesRaw  The raw options returned by Joomla
+	 *
+	 * @return  void
+	 *
+	 * @since   1.0.0
+	 */
+	private function parseImageTemplates($ogTemplatesRaw): void
+	{
+		$this->templates = [];
+		$ogTemplatesRaw  = empty($ogTemplatesRaw) ? [] : (array) $ogTemplatesRaw;
+
+		foreach ($ogTemplatesRaw as $variables)
+		{
+			$variables                                    = (array) $variables;
+			$this->templates[$variables['template-name']] = $variables;
+		}
+	}
+
+	/**
+	 * Resize and crop an image
+	 *
+	 * @param   string   $src    The path to the original image.
+	 * @param   numeric  $new_w  New width, in pixels.
+	 * @param   numeric  $new_h  New height, in pixels.
+	 * @param   string   $focus  Focus of the image; default is center.
+	 *
+	 * @return  Imagick
+	 *
+	 * @throws \ImagickException
+	 *
+	 * @since   1.0.0
+	 */
+	private function resize(string $src, $new_w, $new_h, string $focus = 'center'): Imagick
+	{
+		$image = new Imagick($src);
+
+		$w = $image->getImageWidth();
+		$h = $image->getImageHeight();
+
+		$resize_w = $new_w;
+		$resize_h = $h * $new_w / $w;
+
+		if ($w > $h)
+		{
+			$resize_w = $w * $new_h / $h;
+			$resize_h = $new_h;
+
+			if ($resize_w < $new_w)
+			{
+				$resize_w = $new_w;
+				$resize_h = $h * $new_w / $w;
+			}
+		}
+
+		$image->resizeImage($resize_w, $resize_h, Imagick::FILTER_LANCZOS, 0.9);
+
+		switch ($focus)
+		{
+			case 'northwest':
+				$image->cropImage($new_w, $new_h, 0, 0);
+				break;
+
+			default:
+			case 'center':
+				$image->cropImage($new_w, $new_h, ($resize_w - $new_w) / 2, ($resize_h - $new_h) / 2);
+				break;
+
+			case 'northeast':
+				$image->cropImage($new_w, $new_h, $resize_w - $new_w, 0);
+				break;
+
+			case 'southwest':
+				$image->cropImage($new_w, $new_h, 0, $resize_h - $new_h);
+				break;
+
+			case 'southeast':
+				$image->cropImage($new_w, $new_h, $resize_w - $new_w, $resize_h - $new_h);
+				break;
+		}
+
+		return $image;
 	}
 }

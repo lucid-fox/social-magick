@@ -3,8 +3,6 @@
   <component name="PhpIncludePathManager">
     <include_path>
       <path value="../../master/joomla4" />
-      <path value="$USER_HOME$/Sites/boot4" />
-      <path value="$PROJECT_DIR$/vendor/composer" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="7.2" />

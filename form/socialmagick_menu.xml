@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ SocialMagick – Automatically generate Open Graph images on your site
+  ~
+  ~ @package   socialmagick
+  ~ @copyright Copyright 2021-2021 Lucid Fox
+  ~ @license   GNU GPL v3 or later
+  -->
+<form>
+    <fields name="socialmagick" addfieldpath="/plugins/system/socialmagick/fields">
+        <fieldset name="socialmagick"
+                  label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_FIELDSET_SOCIALMAGICK_HEAD"
+
+        >
+            <field
+                    type="note"
+                    class="alert alert-info"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_NOTES"
+            />
+
+            <field
+                    name="generate_images"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="0"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="template"
+                    type="socialmagicktemplate"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_DESC"
+            />
+
+            <field
+                    name="custom_text"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_DESC"
+                    filter="no_html"
+                />
+
+            <field
+                    name="use_article"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="use_title"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+        </fieldset>
+    </fields>
+</form>

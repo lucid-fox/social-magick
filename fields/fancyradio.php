@@ -7,7 +7,11 @@
  * @license   GNU GPL v3 or later
  */
 
-JFormHelper::loadFieldClass('radio');
+defined('_JEXEC') || die();
+
+use Joomla\CMS\Form\FormHelper;
+
+FormHelper::loadFieldClass('radio');
 
 /**
  * Yes/No switcher, compatible with Joomla 3 and 4
@@ -32,5 +36,4 @@ class JFormFieldFancyradio extends JFormFieldRadio
 
 		parent::__construct($form);
 	}
-
 }
