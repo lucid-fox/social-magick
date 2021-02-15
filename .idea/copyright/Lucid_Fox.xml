@@ -1,0 +1,8 @@
+<component name="CopyrightManager">
+  <copyright>
+    <option name="allowReplaceRegexp" value="Copyright [\d]{4,4}.*Lucid Fox" />
+    <option name="keyword" value="Copyright [\d]{4,4}.*Lucid Fox" />
+    <option name="notice" value="Lucid Fox Open Graph Image generator&#10; &#10;@package   ogimages&#10;@copyright Copyright 2021-&amp;#36;today.year Lucid Fox&#10;@license   GNU GPL v3 or later&#10;" />
+    <option name="myName" value="Lucid Fox" />
+  </copyright>
+</component>
