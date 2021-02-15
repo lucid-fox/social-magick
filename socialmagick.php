@@ -252,6 +252,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		$useTitle    = $params->get('socialmagick.use_title', 1) == 1;
 		$imageSource = $params->get('socialmagick.image_source', 'none');
 		$imageField  = $params->get('socialmagick.image_field', '');
+		$overrideOG  = $params->get('socialmagick.override_og', 0) == 1;
 
 		// Get the text to render.
 		$text = $this->getText($currentItem, $customText, $useArticle, $useTitle);
@@ -286,7 +287,7 @@ class plgSystemSocialmagick extends CMSPlugin
 			$extraImage = null;
 		}
 
-		$this->helper->applyOGImage($text, $template, $extraImage);
+		$this->helper->applyOGImage($text, $template, $extraImage, $overrideOG);
 	}
 
 	/**
