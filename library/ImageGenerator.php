@@ -218,7 +218,12 @@ final class ImageGenerator
 		}
 
 		// Create the folder if it doesn't already exist
-		Folder::create(dirname($filename));
+		$imageOutputFolder = dirname($filename);
+
+		if (!@is_dir($imageOutputFolder) && !@mkdir($imageOutputFolder, 0777, true))
+		{
+			Folder::create($imageOutputFolder);
+		}
 
 		// Setup the base image upon which we will superimpose the layered image (if any) and the text
 		$image = new Imagick();
