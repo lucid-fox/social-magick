@@ -1,0 +1,22 @@
+{
+  "name": "lucid-fox/socialmagick",
+  "description": "Lucid Fox Social Magick – A Joomla 3 and 4 plugin to automatically generate Open Graph images.",
+  "minimum-stability": "stable",
+  "license": "GPL-3.0-or-later",
+  "authors": [
+    {
+      "name": "Crystal Dionysopoulos",
+      "homepage": "https://lucid-fox.com",
+      "role": "Creative Director"
+    },
+    {
+      "name": "Nicholas K. Dionysopoulos",
+      "homepage": "https://www.dionysopoulos.me",
+      "role": "Lead Developer"
+    }
+  ],
+  "require": {
+    "php": "^7.2",
+    "ext-imagick": "*"
+  }
+}
