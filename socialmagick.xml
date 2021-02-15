@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ SocialMagick – Automatically generate Open Graph images on your site
+  ~
+  ~ @package   socialmagick
+  ~ @copyright Copyright 2021-2021 Lucid Fox
+  ~ @license   GNU GPL v3 or later
+  -->
+
+<extension version="3.9.0" type="plugin" group="system" method="upgrade">
+    <name>PLG_SYSTEM_SOCIALMAGICK</name>
+    <version>1.0.0</version>
+    <creationDate>2021-02-15</creationDate>
+
+    <author>Lucid Fox</author>
+    <authorEmail>hello@lucid-fox.com</authorEmail>
+    <authorUrl>https://lucid-fox.com</authorUrl>
+
+    <copyright>Copyright (c)2021 Lucid Fox</copyright>
+    <license>GNU General Public License version 3, or later</license>
+
+    <description>PLG_SYSTEM_SOCIALMAGICK_XML_DESC</description>
+
+    <files>
+        <filename plugin="socialmagick">socialmagick.php</filename>
+
+        <filename>.htaccess</filename>
+        <filename>web.config</filename>
+
+        <folder>library</folder>
+        <folder>fields</folder>
+        <folder>fonts</folder>
+        <folder>form</folder>
+    </files>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/en-GB.plg_system_socialmagick.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_socialmagick.sys.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params" addfieldpath="/plugins/system/socialmagick/fields">
+            <fieldset name="basic">
+                <field
+                        name="devmode"
+                        type="fancyradio"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEVMODE_LABEL"
+                        class="btn-group btn-group-yesno"
+                        default="0"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEVMODE_DESC"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
+                <field name="og-templates" type="subform"
+                       multiple="true"
+                       label="Template Options" min="1">
+                    <form>
+                        <field
+                                name="template-name"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEMPLATE_NAME_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEMPLATE_NAME_DESC"
+                                filter="alphanumeric"
+                        />
+
+                        <field
+                                name="base-image"
+                                type="media"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BASE_IMAGE_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BASE_IMAGE_DESC"
+                                directory="og-templates"
+                        />
+
+                        <field
+                                name="template-w"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEMPLATE_W_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEMPLATE_W_DESC"
+                                filter="integer"
+                                default="1200"
+                        />
+
+                        <field
+                                name="template-h"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEMPLATE_H_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEMPLATE_H_DESC"
+                                filter="integer"
+                                default="630"
+                        />
+
+                        <field
+                                name="base-color"
+                                type="color"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BASE_COLOR_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BASE_COLOR_DESC"
+                                default="#000000"
+                                format="hex"
+                                showon="base-image:"
+                        />
+
+                        <field
+                                name="base-color-alpha"
+                                type="range"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BASE_COLOR_ALPHA_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BASE_COLOR_ALPHA_DESC"
+                                min="10"
+                                max="100"
+                                default="100"
+                                step="10"
+                                showon="base-image:"
+                        />
+
+                        <field
+                                name="text-font"
+                                type="filelist"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_FONT_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_FONT_DESC"
+                                directory="plugins/system/socialmagick/fonts/"
+                                hide_none="true"
+                                hide_default="true"
+                        />
+
+                        <field
+                                name="font-size"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_FONT_SIZE_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_FONT_SIZE_DESC"
+                                filter="integer"
+                                default="24"
+                        />
+
+                        <field
+                                name="text-color"
+                                type="color"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_COLOR_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_COLOR_DESC"
+                                default="#ffffff"
+                                format="hex"
+                        />
+
+                        <field
+                                name="text-height"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_HEIGHT_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_HEIGHT_DESC"
+                                default="630"
+                                filter="integer"
+                        />
+
+                        <field
+                                name="text-width"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_WIDTH_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_WIDTH_DESC"
+                                default="1200"
+                                filter="integer"
+                        />
+
+                        <field
+                                name="text-align"
+                                type="list"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_DESC"
+                                default="left"
+                        >
+                            <option value="left">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_OPT_LEFT</option>
+                            <option value="center">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_OPT_CENTER</option>
+                            <option value="right">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_OPT_RIGHT</option>
+                        </field>
+
+                        <field
+                                name="text-y-center"
+                                type="fancyradio"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_CENTER_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_CENTER_DESC"
+                                class="btn-group btn-group-yesno"
+                                default="1"
+                        >
+                            <option value="0">JNO</option>
+                            <option value="1">JYES</option>
+                        </field>
+
+                        <field
+                                name="text-y-adjust"
+                                type="text"
+                                showon="text-y-center:1"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ADJUST_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ADJUST_DESC"
+                                filter="integer"
+                                default="0"
+                        />
+
+                        <field
+                                name="text-y-absolute"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ABSOLUTE_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ABSOLUTE_DESC"
+                                showon="text-y-center:0"
+                                filter="integer"
+                        />
+
+                        <field
+                                name="text-x-center"
+                                type="fancyradio"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_CENTER_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_CENTER_DESC"
+                                class="btn-group btn-group-yesno"
+                                default="1"
+                        >
+                            <option value="0">JNO</option>
+                            <option value="1">JYES</option>
+                        </field>
+
+                        <field
+                                name="text-x-adjust"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ADJUST_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ADJUST_DESC"
+                                showon="text-x-center:1"
+                                filter="integer"
+                                default="0"
+                        />
+
+                        <field
+                                name="text-x-absolute"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ABSOLUTE_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ABSOLUTE_DESC"
+                                showon="text-x-center:0"
+                                filter="integer"
+                        />
+
+                        <field
+                                name="use-article-image"
+                                type="fancyradio"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_USE_ARTICLE_IMAGE_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_USE_ARTICLE_IMAGE_DESC"
+                                class="btn-group btn-group-yesno"
+                                default="0"
+
+                        >
+                            <option value="0">JNO</option>
+                            <option value="1">JYES</option>
+                        </field>
+
+                        <field
+                                name="image-z"
+                                type="radio"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Z_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Z_DESC"
+                                class="btn-group"
+                                default="under"
+                                showon="use-article-image:1"
+                        >
+                            <option value="over">PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Z_OPT_OVER</option>
+                            <option value="under">PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Z_OPT_UNDER</option>
+                        </field>
+
+                        <field
+                                name="image-cover"
+                                type="fancyradio"
+                                label="Should the image be full-width and full-height?"
+                                description="Anything larger than your specified dimensions will be resized and cropped to fit."
+                                class="btn-group btn-group-yesno"
+                                showon="use-article-image:1"
+                                default="1"
+                        >
+                            <option value="0">JNO</option>
+                            <option value="1">JYES</option>
+                        </field>
+
+                        <field
+                                name="image-width"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_WIDTH_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_WIDTH_DESC"
+                                default="1200"
+                                showon="use-article-image:1[AND]image-cover:0"
+                                filter="integer"
+                        />
+
+                        <field
+                                name="image-height"
+                                type="text"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_HEIGHT_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_HEIGHT_DESC"
+                                default="630"
+                                showon="use-article-image:1[AND]image-cover:0"
+                                filter="integer"
+                        />
+
+                        <field
+                                name="image-x"
+                                type="text"
+                                showon="use-article-image:1[AND]image-cover:0"
+                                label="Image Position (pixels from left edge)"
+                                filter="integer"
+                                default="0"
+                        />
+
+                        <field
+                                name="image-y"
+                                type="text"
+                                showon="use-article-image:1[AND]image-cover:0"
+                                label="Image Position (pixels from top edge)"
+                                filter="integer"
+                                default="0"
+                        />
+                    </form>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
+</extension>
