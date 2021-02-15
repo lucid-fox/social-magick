@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Lucid Fox Open Graph Image generator
+  ~ SocialMagick – Automatically generate Open Graph images on your site
   ~
-  ~ @package   ogimages
+  ~ @package   socialmagick
   ~ @copyright Copyright 2021-2021 Lucid Fox
   ~ @license   GNU GPL v3 or later
-  ~
   -->
 
 <extension version="3.9.0" type="plugin" group="system" method="upgrade">
-    <name>PLG_SYSTEM_OGIMAGE</name>
+    <name>PLG_SYSTEM_SOCIALMAGICK</name>
     <author>Lucid Fox</author>
     <authorEmail>hello@lucid-fox.com</authorEmail>
     <authorUrl>https://lucid-fox.com</authorUrl>
@@ -17,14 +16,14 @@
     <license>GNU General Public License version 3, or later</license>
     <creationDate>2021-02-15</creationDate>
     <version>1.0</version>
-    <description>PLG_SYSTEM_OGIMAGE_XML_DESC</description>
+    <description>PLG_SYSTEM_SOCIALMAGICK_XML_DESC</description>
     <files>
-        <filename plugin="ogimage">ogimage.php</filename>
+        <filename plugin="socialmagick">socialmagick.php</filename>
         <folder>library</folder>
         <folder>form</folder>
     </files>
     <languages folder="language">
-        <language tag="en-GB">en-GB/en-GB.plg_system_ogimage.ini</language>
-        <language tag="en-GB">en-GB/en-GB.plg_system_ogimage.sys.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_socialmagick.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_socialmagick.sys.ini</language>
     </languages>
 </extension>

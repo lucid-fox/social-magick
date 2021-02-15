@@ -1,2 +1,3 @@
-# og-images
-An Open Graph Image generator plugin for Joomla 3 and 4
+# Lucid Fox Social Magick
+
+A Joomla 3 and 4 plugin to automatically generate Open Graph images.
