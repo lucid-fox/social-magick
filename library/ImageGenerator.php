@@ -12,8 +12,12 @@ namespace LucidFox\SocialMagick;
 use Exception;
 use Imagick;
 use ImagickPixel;
+use Joomla\CMS\Application\ApplicationHelper;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\Filesystem\Folder;
+use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
 
@@ -43,6 +47,14 @@ final class ImageGenerator
 	private $templates = [];
 
 	/**
+	 * Path relative to the site's root where the generated images will be saved
+	 *
+	 * @var   string
+	 * @since 1.0.0
+	 */
+	private $outputFolder = '';
+
+	/**
 	 * ImageGenerator constructor.
 	 *
 	 * @param   Registry  $pluginParams  The plugin parameters. Used to set up internal properties.
@@ -51,7 +63,8 @@ final class ImageGenerator
 	 */
 	public function __construct(Registry $pluginParams)
 	{
-		$this->devMode = $pluginParams->get('devmode', 0) == 1;
+		$this->devMode      = $pluginParams->get('devmode', 0) == 1;
+		$this->outputFolder = $pluginParams->get('output_folder', 'images/og-generated') ?: 'images/og-generated';
 		$this->parseImageTemplates($pluginParams->get('og-templates', null));
 	}
 
@@ -193,6 +206,7 @@ final class ImageGenerator
 				$image->cropImage($new_w, $new_h, 0, 0);
 				break;
 
+			default:
 			case 'center':
 				$image->cropImage($new_w, $new_h, ($resize_w - $new_w) / 2, ($resize_h - $new_h) / 2);
 				break;
@@ -228,196 +242,198 @@ final class ImageGenerator
 	 */
 	private function generateOGImage(string $text, string $template, ?string $extraImage): array
 	{
-		$templateParams = $app->getTemplate(true)->params;
+		// Get the generated image filename and URL
+		$filename         = Path::clean(sprintf("%s/%s%s.png",
+			JPATH_ROOT,
+			$this->outputFolder,
+			md5($text . ' ' . $template
+			)));
+		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)));
+		$imageUrl         = Uri::base() . $realRelativePath;
 
-		$name      = md5($text . ' ' . $template);
-		$filename  = JPATH_ROOT . '/images/og-generated/' . $name . '.png';
-		$isDevMode = $templateParams->get('devmode', 0) == 1;
+		// Get the image template
+		$template       = array_merge([
+			'base-image'        => '',
+			'template-w'        => 1200,
+			'template-h'        => 630,
+			'base-color'        => '#000000',
+			'base-color-alpha'  => 1,
+			'text-font'         => '',
+			'font-size'         => 24,
+			'text-color'        => '#ffffff',
+			'text-width'        => 1200,
+			'text-height'       => 630,
+			'text-align'        => 'left',
+			'text-y-center'     => 1,
+			'text-y-adjust'     => 0,
+			'text-y-absolute'   => 0,
+			'text-x-center'     => 1,
+			'text-x-adjust'     => 0,
+			'text-x-absolute'   => 0,
+			'use-article-image' => 0,
+			'image-z'           => 'under',
+			'image-cover'       => 1,
+			'image-width'       => 1200,
+			'image-height'      => 630,
+			'image-x'           => 0,
+			'image-y'           => 0,
+		], $this->templates[$template] ?? []);
+		$templateWidth  = $template['template-w'] ?? 1200;
+		$templateHeight = $template['template-h'] ?? 630;
 
-		if (!file_exists($filename) || $isDevMode)
+		// If the file exists return early
+		if (@file_exists($filename) && !$this->devMode)
 		{
-			mkdir(dirname($filename), 0755, true);
+			$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
 
-			$template = array_merge([
-				'base-image'        => '',
-				'template-w'        => 1200,
-				'template-h'        => 630,
-				'base-color'        => '#000000',
-				'base-color-alpha'  => 1,
-				'text-font'         => '',
-				'font-size'         => 24,
-				'text-color'        => '#ffffff',
-				'text-width'        => 1200,
-				'text-height'       => 630,
-				'text-align'        => 'left',
-				'text-y-center'     => 1,
-				'text-y-adjust'     => 0,
-				'text-y-absolute'   => 0,
-				'text-x-center'     => 1,
-				'text-x-adjust'     => 0,
-				'text-x-absolute'   => 0,
-				'use-article-image' => 0,
-				'image-z'           => 'under',
-				'image-cover'       => 1,
-				'image-width'       => 1200,
-				'image-height'      => 630,
-				'image-x'           => 0,
-				'image-y'           => 0,
-			], $this->templates[$template] ?? []);
-
-			/* Create some objects */
-			$image = new Imagick();
-
-			$templateWidth  = $template['template-w'] ?? 0;
-			$templateHeight = $template['template-h'] ?? 0;
-
-			if ($template['base-image'])
-			{
-				$image = $this->resize(JPATH_ROOT . '/' . $template['base-image'], $templateWidth, $templateHeight);
-			}
-			else
-			{
-				/* New image */
-				$opacity = $template['base-color-alpha'];
-				$alpha   = round($opacity * 255);
-				$hex     = substr(base_convert(($alpha + 0x10000), 10, 16), -2, 2);
-				$pixel   = new ImagickPixel($template['base-color'] . $hex);
-				$image->newImage($templateWidth, $templateHeight, $pixel);
-			}
-
-			$theText = new Imagick();
-			$theText->setBackgroundColor('transparent');
-
-			/* Font properties */
-			$theText->setFont(JPATH_THEMES . '/' . Factory::getApplication()->getTemplate() . '/fonts/' . $template['text-font']);
-			$theText->setPointSize($template['font-size']);
-
-			/* Create text */
-			$theText->setGravity(Imagick::GRAVITY_CENTER);
-			if ($template['text-align'] === 'center')
-			{
-				$theText->setGravity(Imagick::GRAVITY_CENTER);
-			}
-			elseif ($template['text-align'] === 'left')
-			{
-				$theText->setGravity(Imagick::GRAVITY_WEST);
-			}
-			elseif ($template['text-align'] === 'right')
-			{
-				$theText->setGravity(Imagick::GRAVITY_EAST);
-			}
-
-			// Create a `caption:` pseudo image that only manages text.
-			$theText->newPseudoImage($template['text-width'],
-				$template['text-height'],
-				'caption:' . $text);
-			// Remove extra height.
-			$theText->trimImage(0.0);
-			//set color of text
-			$clut = new Imagick();
-			$clut->newImage(1, 1, new ImagickPixel($template['text-color']));
-			$theText->clutImage($clut);
-			$clut->destroy();
-
-
-			// Figure out text vertical position
-			if ($template['text-y-center'] === '1')
-			{
-				$yPos = ($image->getImageHeight() - $theText->getImageHeight()) / 2.0; //centers image
-				if ($template['text-y-adjust'] !== '0')
-				{
-					$yPos = ($image->getImageHeight() - $theText->getImageHeight()) / 2.0 + $template['text-y-adjust'];
-				}
-			}
-			else
-			{
-				$yPos = $template['text-y-absolute'];
-			}
-			// debug
-			// $yPos = 0;
-			// Figure out text horizontal position
-			if ($template['text-x-center'] === '1')
-			{
-				$xPos = ($image->getImageWidth() - $theText->getImageWidth()) / 2.0; //centers image
-				if ($template['text-x-adjust'] !== '0')
-				{
-					$xPos = ($image->getImageWidth() - $theText->getImageWidth()) / 2.0 + $template['text-x-adjust'];
-				}
-			}
-			else
-			{
-				$xPos = $template['text-x-absolute'];
-			}
-			// debug
-			// echo $xPos;
-			// $xPos = 0;
-
-			// Add extra image
-			if ($template['use-article-image'] !== '0' && $extraImage)
-			{
-				$extraCanvas = new Imagick();
-				$extraCanvas->newImage($templateWidth, $templateHeight, new ImagickPixel('transparent'));
-				if ($template['image-cover'] === '1')
-				{
-					$tmpImg = $this->resize($extraImage, $templateWidth, $templateHeight);
-					$imgX   = 0;
-					$imgY   = 0;
-					$extraCanvas->compositeImage(
-						$tmpImg,
-						Imagick::COMPOSITE_OVER,
-						$imgX,
-						$imgY);
-				}
-				else
-				{
-					$tmpImg = $this->resize($extraImage, $template['image-width'], $template['image-height']);
-					$imgX   = $template['image-x'];
-					$imgY   = $template['image-y'];
-					$extraCanvas->compositeImage(
-						$tmpImg,
-						Imagick::COMPOSITE_DEFAULT,
-						0,
-						0);
-				}
-				if ($template['image-z'] === 'under')
-				{
-					$extraCanvas->compositeImage(
-						$image,
-						Imagick::COMPOSITE_OVER,
-						-$imgX,
-						-$imgY);
-					$image->compositeImage(
-						$extraCanvas,
-						Imagick::COMPOSITE_COPY,
-						$imgX,
-						$imgY);
-
-				}
-				elseif ($template['image-z'] === 'over')
-				{
-					$image->compositeImage(
-						$extraCanvas,
-						Imagick::COMPOSITE_DEFAULT,
-						$imgX,
-						$imgY);
-				}
-			}
-
-			// Composite bestfit caption over base image.
-			$image->compositeImage(
-				$theText,
-				Imagick::COMPOSITE_DEFAULT,
-				$xPos,
-				$yPos);
-
-
-			/* Give image a format */
-			$image->setImageFormat('png');
-
-			file_put_contents($filename, $image);
-
+			return [$imageUrl . '?' . $mediaVersion, $templateWidth, $templateHeight];
 		}
 
-		$imageUrl = Uri::base() . 'images/og-generated/' . $name . '.png';
+		// Create the folder if it doesn't already exist
+		Folder::create(dirname($filename));
+
+		// Setup the base image upon which we will superimpose the layered image (if any) and the text
+		$image = new Imagick();
+
+		if ($template['base-image'])
+		{
+			$image = $this->resize(JPATH_ROOT . '/' . $template['base-image'], $templateWidth, $templateHeight);
+		}
+		else
+		{
+			/* New image */
+			$opacity = $template['base-color-alpha'];
+			$alpha   = round($opacity * 255);
+			$hex     = substr(base_convert(($alpha + 0x10000), 10, 16), -2, 2);
+			$pixel   = new ImagickPixel($template['base-color'] . $hex);
+
+			$image->newImage($templateWidth, $templateHeight, $pixel);
+		}
+
+		// Set up the text
+		$fontPath = JPATH_PLUGINS . '/system/socialmagick/fonts/';
+
+		$theText = new Imagick();
+		$theText->setBackgroundColor('transparent');
+
+		/* Font properties */
+		$theText->setFont($fontPath . '/' . $template['text-font']);
+		$theText->setPointSize($template['font-size']);
+
+		/* Create text */
+		switch ($template['text-align'])
+		{
+			default:
+			case 'center':
+				$theText->setGravity(Imagick::GRAVITY_CENTER);
+				break;
+
+			case 'left':
+				$theText->setGravity(Imagick::GRAVITY_WEST);
+				break;
+
+			case 'right':
+				$theText->setGravity(Imagick::GRAVITY_EAST);
+				break;
+		}
+
+		// Create a `caption:` pseudo image that only manages text.
+		$theText->newPseudoImage($template['text-width'],
+			$template['text-height'],
+			'caption:' . $text);
+
+		// Remove extra height.
+		$theText->trimImage(0.0);
+
+		// Set text color
+		$clut = new Imagick();
+		$clut->newImage(1, 1, new ImagickPixel($template['text-color']));
+		$theText->clutImage($clut);
+		$clut->destroy();
+
+		// Figure out text vertical position
+		$yPos = $template['text-y-absolute'];
+
+		if ($template['text-y-center'] === '1')
+		{
+			$yPos = ($image->getImageHeight() - $theText->getImageHeight()) / 2.0 + $template['text-y-adjust'];
+		}
+
+		// Figure out text horizontal position
+		$xPos = $template['text-x-absolute'];
+
+		if ($template['text-x-center'] === '1')
+		{
+			$xPos = ($image->getImageWidth() - $theText->getImageWidth()) / 2.0 + $template['text-x-adjust'];
+		}
+
+		// Add extra image
+		if ($template['use-article-image'] !== '0' && $extraImage)
+		{
+			$extraCanvas = new Imagick();
+			$extraCanvas->newImage($templateWidth, $templateHeight, new ImagickPixel('transparent'));
+
+			if ($template['image-cover'] === '1')
+			{
+				$tmpImg = $this->resize($extraImage, $templateWidth, $templateHeight);
+				$imgX   = 0;
+				$imgY   = 0;
+				$extraCanvas->compositeImage(
+					$tmpImg,
+					Imagick::COMPOSITE_OVER,
+					$imgX,
+					$imgY);
+			}
+			else
+			{
+				$tmpImg = $this->resize($extraImage, $template['image-width'], $template['image-height']);
+				$imgX   = $template['image-x'];
+				$imgY   = $template['image-y'];
+				$extraCanvas->compositeImage(
+					$tmpImg,
+					Imagick::COMPOSITE_DEFAULT,
+					0,
+					0);
+			}
+
+			if ($template['image-z'] === 'under')
+			{
+				$extraCanvas->compositeImage(
+					$image,
+					Imagick::COMPOSITE_OVER,
+					-$imgX,
+					-$imgY);
+				$image->compositeImage(
+					$extraCanvas,
+					Imagick::COMPOSITE_COPY,
+					$imgX,
+					$imgY);
+
+			}
+			elseif ($template['image-z'] === 'over')
+			{
+				$image->compositeImage(
+					$extraCanvas,
+					Imagick::COMPOSITE_DEFAULT,
+					$imgX,
+					$imgY);
+			}
+		}
+
+		// Composite bestfit caption over base image.
+		$image->compositeImage(
+			$theText,
+			Imagick::COMPOSITE_DEFAULT,
+			$xPos,
+			$yPos);
+
+		// Write the image as a PNG file
+		$image->setImageFormat('png');
+
+		File::write($filename, $image);
+
+		$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
+
+		return [$imageUrl . '?' . $mediaVersion, $templateWidth, $templateHeight];
 	}
 }

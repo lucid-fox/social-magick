@@ -53,6 +53,15 @@
                     <option value="1">JYES</option>
                 </field>
 
+                <field
+                        name="output_folder"
+                        type="text"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OUTPUT_FOLDER_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OUTPUT_FOLDER_DESC"
+                        default="images/og-generated"
+                        filter="path"
+                />
+
                 <field name="og-templates" type="subform"
                        multiple="true"
                        label="Template Options" min="1">
