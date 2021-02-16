@@ -10,6 +10,11 @@ This plugin allows you to automatically generate Open Graph images for your site
 graphics over an image or solid color background. Open Graph images are used by social media sites when sharing a URL to
 any of your site's pages on them.
 
+For example: (to do)
+| Facebook | Twitter | LinkedIn | Pinterest | Slack |
+|----------|---------|----------|-----------|-------|
+|          |         |          |           |       |
+
 ## Requirements
 
 This plugin has the following minimum requirements:
