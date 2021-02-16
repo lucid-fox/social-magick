@@ -1,0 +1,4 @@
+;; Copy this file to privileged.properties and edit it before making a release!
+
+; GitHub personal access token from https://github.com/settings/tokens
+github.token=yourGitHubTokenHere

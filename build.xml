@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+<!--
+  ~ Social Magick – Automatically generate Open Graph images on your site
+  ~
+  ~ @package   socialmagick
+  ~ @copyright Copyright 2021-2021 Lucid Fox
+  ~ @license   GNU GPL v3 or later
+  -->
+
+<project name="SocialMagic" description="Social Magic" default="git">
+    <!-- Built in properties -->
+    <!-- ### Project Paths -->
+    <property name="dirs.root" value="${phing.dir}"/>
+    <property name="dirs.release" value="${dirs.root}/release"/>
+    <!-- ### Externals -->
+    <property name="dirs.composer" value="${dirs.root}" />
+    <!-- ### Version numbers -->
+    <property name="version" value="git"/>
+
+    <!-- ### Project properties -->
+    <property file="${phing.dir}/build.properties" override="true"/>
+    <!-- ### Project, OS-dependent -->
+    <property file="${phing.dir}/build.${host.os}.properties" override="true"/>
+    <!-- ### Privileged properties -->
+    <property file="${phing.dir}/privileged.properties" override="true"/>
+    <!-- ### Overrides, per project -->
+    <property file="${phing.dir}/override.properties" override="true"/>
+
+    <!-- Custom task definitions -->
+    <includepath classpath="_phing"/>
+
+    <taskdef name="gitdate" classname="GitDateTask"/>
+    <taskdef name="GitHubAsset" classname="GitHubAssetTask"/>
+    <taskdef name="GitHubRelease" classname="GitHubReleaseTask"/>
+    <taskdef name="gitversion" classname="GitVersionTask"/>
+    <taskdef name="xmlversion" classname="XmlVersionTask"/>
+
+    <target name="all" description="Makes everything"
+            depends="git">
+    </target>
+
+    <target name="git" description="Makes only packages, not the documentation"
+            depends="new-release,setup-properties,plugin">
+    </target>
+
+    <target name="plugin" description="Package the plugin"
+            depends="new-release,setup-properties"
+    >
+        <zip destfile="${dirs.release}/socialmagick.zip"
+             basedir="${dirs.root}"
+             comment="Lucid Fox Social Magick ${version}">
+            <fileset dir="${dirs.root}">
+                <include name="fields/**" />
+                <include name="fonts/**" />
+                <include name="form/**" />
+                <include name="language/**" />
+                <include name="media/**" />
+                <include name="library/**" />
+                <include name="script.plg_system_socialmagick.php" />
+                <include name="socialmagick.php" />
+                <include name="socialmagick.xml" />
+                <include name=".htaccess" />
+                <include name="web.config" />
+            </fileset>
+        </zip>
+    </target>
+
+    <target name="new-release" description="Create afresh the release directory"
+            depends="composer-install">
+        <delete dir="${dirs.release}" quiet="true" includeemptydirs="true" />
+        <mkdir dir="${dirs.release}" />
+    </target>
+
+    <target name="setup-properties" description="Set up version and build properties">
+        <!-- Initialize the build.date timestamp -->
+        <tstamp>
+            <format property="build.date" pattern="%Y-%m-%d" />
+        </tstamp>
+
+        <!-- Initialize the version if it's not set -->
+        <if>
+            <equals arg1="${version}" arg2="git" />
+            <then>
+                <gitversion workingcopy="${dirs.root}" propertyname="git.lastrevision" />
+                <property name="version" value="rev${git.lastrevision}" override="true" />
+            </then>
+        </if>
+    </target>
+
+    <target name="composer-install">
+        <composer composer="${bin.composer}" command="install" php="${system.php_cli}">
+            <arg value="-d" />
+            <arg path="${dirs.composer}" />
+        </composer>
+    </target>
+
+    <target name="release" depends="git">
+        <!-- Make sure there is a tag that's the same as the version number -->
+        <gittag gitPath="${git.binary}"
+                repository="${dirs.root}"
+                list="true" pattern="${version}"
+                outputProperty="git.tags"
+        />
+
+        <php function="trim" returnProperty="git.tags">
+            <param value="${git.tags}" />
+        </php>
+
+        <if>
+            <not>
+                <equals arg1="${git.tags}" arg2="${version}" />
+            </not>
+            <then>
+                <fail message="You must tag version ${version} before trying to release it." />
+            </then>
+        </if>
+
+        <!-- Verify the tag. If it can't verify the tag the build fails. -->
+        <gittag gitPath="${git.binary}"
+                repository="${dirs.root}"
+                verify="true"
+                object="${version}"
+                outputProperty="git.verify"
+        />
+
+        <!-- Make a draft release -->
+        <loadfile property="github.release.body" file="${dirs.root}/RELEASENOTES.md" />
+
+        <GitHubRelease token="${github.token}" organization="${github.organization}" repository="${github.repository}"
+                       tagName="${version}" releaseName="v.${version}" releaseBody="${github.release.body}" draft="1"
+                       propName="github.release.id" />
+
+        <!-- Upload the release files -->
+        <fileset dir="${dirs.release}" id="github_release_files">
+            <include name="${github.release.file}" />
+        </fileset>
+
+        <foreach param="filename" target="github-release-file">
+            <fileset refid="github_release_files" />
+        </foreach>
+
+        <!-- Publish the release -->
+        <GitHubRelease token="${github.token}" organization="${github.organization}" repository="${github.repository}"
+                       tagName="${version}" draft="0" />
+    </target>
+
+    <target name="github-release-file">
+        <GitHubAsset token="${github.token}" organization="${github.organization}" repository="${github.repository}"
+                     file="${dirs.release}/${filename}"
+                     releaseId="${github.release.id}" />
+    </target>
+
+    <target name="xml-version" depends="setup-properties">
+
+        <if>
+            <and>
+                <not>
+                    <contains string="${version}" substring="rev"/>
+                </not>
+                <not>
+                    <contains string="${version}" substring="dev"/>
+                </not>
+                <not>
+                    <contains string="${version}" substring="git"/>
+                </not>
+                <not>
+                    <contains string="${version}" substring="svn"/>
+                </not>
+            </and>
+            <then>
+                <xmlversion repository="${dirs.root}" version="${version}" date="${build.date}"/>
+            </then>
+        </if>
+    </target>
+
+    <target name="info">
+        <php function="php_ini_loaded_file" returnProperty="inifiles" />
+        <php function="php_ini_scanned_files" returnProperty="extrainifiles" />
+
+        <echo message="Phing v.${phing.version} running on ${os.name}" />
+        <echo message="Host OS ${host.os} release ${host.os.release} version ${host.os.version}" />
+        <echo message="PHP version: ${php.version}" />
+        <echo message="PHP ini file: ${inifiles}" />
+        <echo message="PHP additional ini files: ${extrainifiles}" />
+        <echo message="Host architecture ${host.arch} – fstype ${host.fstype}" />
+        <echo message="Host domain ${host.domain}" />
+        <echo message="CWD ${application.startdir}" />
+        <echo message="phing.file ${phing.file}" />
+        <echo message="phing.home ${phing.home}" />
+        <echo message="phing.dir ${phing.dir}" />
+        <echo message="phing.project.name ${phing.project.name}" />
+        <echo message="project.basedir ${project.basedir}" />
+    </target>
+</project>
