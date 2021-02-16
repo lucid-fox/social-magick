@@ -16,7 +16,7 @@ This plugin has the following minimum requirements:
 
 * Joomla 3.9 or any later 3.x version; or Joomla 4.0
 * PHP 7.2, 7.3, 7.4 or 8.0
-* The Imagick PHP extension installed and enabled
+* The Imagick PHP extension installed and enabled. (If you're not sure how to do this, ask your host.)
 
 ## Quick setup
 
