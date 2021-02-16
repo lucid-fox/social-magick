@@ -15,6 +15,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Menu\MenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\Table\Table;
 use LucidFox\SocialMagick\ImageGenerator;
 
 /**
@@ -117,12 +118,19 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * @param   string|null   $context  Context for the content being saved
 	 * @param   Table|object  $table    Joomla table object where the content is being saved to
 	 * @param   bool          $isNew    Is this a new record?
-	 * @param   object        $data     Data being saved
+	 * @param   object        $data     Data being saved (Joomla 4)
 	 *
 	 * @return  bool
 	 */
 	public function onContentBeforeSave(?string $context, $table, $isNew = false, $data = null): bool
 	{
+		// Joomla 3 does not pass the data from com_menus. Therefore, we have to fake it.
+		if (is_null($data) && version_compare(JVERSION, '3.999.999', 'le'))
+		{
+			$input = Factory::getApplication()->input;
+			$data = $input->get('jform', [], 'array');
+		}
+
 		// Make sure I have data to save
 		if (!isset($data['socialmagick']))
 		{
