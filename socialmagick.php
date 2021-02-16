@@ -304,7 +304,7 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	public function onContentBeforeDisplay(?string $context, &$row, &$params, ?int $page = 0): string
 	{
-		if ($context != 'com_content.article')
+		if (!in_array($context, ['com_content.article', 'com_content.category']))
 		{
 			return '';
 		}
