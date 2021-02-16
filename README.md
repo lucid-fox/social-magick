@@ -10,10 +10,10 @@ This plugin allows you to automatically generate Open Graph images for your site
 graphics over an image or solid color background. Open Graph images are used by social media sites when sharing a URL to
 any of your site's pages on them.
 
-For example: (to do)
-| Facebook | Twitter | LinkedIn | Pinterest | Slack |
-|----------|---------|----------|-----------|-------|
-|          |         |          |           |       |
+For example:
+| Facebook | Twitter | LinkedIn | Slack |
+|----------|---------|----------|-------|
+|![Facebook Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/Facebook-Example.png?raw=true)|![Twitter Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/Twitter-Example.png?raw=true)|![LinkedIn Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/LinkedIn-Example.png?raw=true)|![Slack Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/Slack-Example.png?raw=true)|
 
 ## Requirements
 
