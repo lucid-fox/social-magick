@@ -131,6 +131,16 @@ final class ImageGenerator
 		$document->setMetaData('og:image:width', $templateWidth, 'property');
 	}
 
+	/**
+	 * Returns the array of parsed templates.
+	 *
+	 * This is used by the plugin to create an event that returns the templates, used by teh custom XML form field which
+	 * allows the user to select a template in menu items.
+	 *
+	 * @return  array
+	 *
+	 * @since   1.0.0
+	 */
 	public function getTemplates(): array
 	{
 		return $this->templates;
@@ -153,16 +163,6 @@ final class ImageGenerator
 
 		// Make sure the Imagick and ImagickPixel classes are not disabled.
 		return class_exists('Imagick') && class_exists('ImagickPixel');
-	}
-
-	private function setTimeLimit(int $limit = 0)
-	{
-		if (!function_exists('set_time_limit'))
-		{
-			return;
-		}
-
-		@set_time_limit($limit);
 	}
 
 	/**
@@ -238,22 +238,22 @@ final class ImageGenerator
 		/**
 		 * ***** !!! WARNING !!! ***** !!! DO NOT REMOVE THIS LINE !!!! *****
 		 *
-		 * Constructing an Imagick object seems to trigger some sort of weird bug in PHP's Imagick extension which
-		 * causes an immediate timeout once we return from the code context that manipulates the image. This happens
-		 * intermittently. I know it's not a bug in our code because even creating and immediately destroying a blank
-		 * Imagick object has this weird effect. Setting the PHP timeout to zero before creating an Imagick object fixes
-		 * this. Hence this weird line here!
+		 * There is a really weird issue with Joomla 4 (does not happen in Joomla 3). This code:
+		 * $foo = new Imagick();
+		 * $foo->destroy();
+		 * set_time_limit(30);
+		 * causes an immediate timeout to trigger **even if** the wall clock time elapsed is under one second.
 		 *
-		 * Note that the immediate timeout is definitely bogus. PHP says that the 30 seconds maximum execution time is
-		 * exceeded when the **entire** page load time up to that point was less than 2 wall clock seconds. Even if PHP,
-		 * which is single threaded, somehow magically managed to use all 8 cores of my machine it would still be less
-		 * than 16 CPU-seconds, i.e. less than the 30 seconds of CPU time allotted by PHP's max_execution_time (remember
-		 * that PHP counts CPU-seconds, not wall clock seconds). So why this happens must be some kind of weird bug in
-		 * the PHP Imagick extension.
+		 * Joomla calls set_time_limit() in its filesystem functions. So, any attempt to write the generated image file
+		 * on a site using the FTP layer would result in an inexplicable error about the time limit being exceeded even
+		 * when it doesn't happen.
 		 *
-		 * CAVEAT: If you use ANY kind of code which calls PHP's set_time_limit with a non-zero value you will STILL get
-		 * the immediate timeout. This applies to Joomla's File and Folder classes which are required when using the FTP
-		 * layer. In those cases you MUST disable development mode in the plugin or it will keep breaking your site.
+		 * Even setting the time limits to ludicrous values, like 900000 (over a day!), triggers this weird bug.
+		 *
+		 * The only thing that works is setting a zero time limit.
+		 *
+		 * This is definitely a weird Joomla 4 issue which I am strongly disinclined to debug. I am just going to go
+		 * through with this unholy, dirty trick and call it a day.
 		 */
 		$this->setTimeLimit(0);
 
@@ -323,7 +323,7 @@ final class ImageGenerator
 		$theText->trimImage(0.0);
 
 		// Set text color
-		$clut = new Imagick();
+		$clut           = new Imagick();
 		$textColorPixel = new ImagickPixel($template['text-color']);
 		$clut->newImage(1, 1, $textColorPixel);
 		$textColorPixel->destroy();
@@ -349,7 +349,7 @@ final class ImageGenerator
 		// Add extra image
 		if ($template['use-article-image'] !== '0' && $extraImage)
 		{
-			$extraCanvas = new Imagick();
+			$extraCanvas      = new Imagick();
 			$transparentPixel = new ImagickPixel('transparent');
 			$extraCanvas->newImage($templateWidth, $templateHeight, $transparentPixel);
 			$transparentPixel->destroy();
@@ -415,20 +415,31 @@ final class ImageGenerator
 		// Write the image as a PNG file
 		$image->setImageFormat('png');
 
-		/**
-		 * -- This seems redundant but it's actually a hotfix to Joomla 4's immediate(!) timeouts when there are no FTP
-		 *    credentials (the FTP layer is disabled in Global Configuration). You're welcome.
-		 */
-		if (!@file_put_contents($filename, $image))
-		{
-			File::write($filename, $image);
-		}
+		File::write($filename, $image);
 
 		$image->destroy();
 
 		$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
 
 		return [$imageUrl . '?' . $mediaVersion, $templateWidth, $templateHeight];
+	}
+
+	/**
+	 * Set the PHP time limit, if possible.
+	 *
+	 * @param   int  $limit  Time limit in seconds.
+	 *
+	 *
+	 * @since   1.0.0
+	 */
+	private function setTimeLimit(int $limit = 0)
+	{
+		if (!function_exists('set_time_limit'))
+		{
+			return;
+		}
+
+		@set_time_limit($limit);
 	}
 
 	/**
