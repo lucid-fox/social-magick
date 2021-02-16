@@ -117,7 +117,7 @@ final class ImageGenerator
 		// Try to generate (or get an already generated) image
 		try
 		{
-			[$image, $templateHeight, $templateWidth] = $this->getOGImage($text, $template, $extraImage);
+			[$imageURL, $templateHeight, $templateWidth] = $this->getOGImage($text, $template, $extraImage);
 		}
 		catch (Exception $e)
 		{
@@ -125,7 +125,7 @@ final class ImageGenerator
 		}
 
 		// Set the page metadata
-		$document->setMetaData('og:image', $image, $attribute = 'property');
+		$document->setMetaData('og:image', $imageURL, $attribute = 'property');
 		$document->setMetaData('og:image:alt', stripcslashes($text), 'property');
 		$document->setMetaData('og:image:height', $templateHeight, 'property');
 		$document->setMetaData('og:image:width', $templateWidth, 'property');
@@ -250,6 +250,8 @@ final class ImageGenerator
 			$pixel   = new ImagickPixel($template['base-color'] . $hex);
 
 			$image->newImage($templateWidth, $templateHeight, $pixel);
+
+			$pixel->destroy();
 		}
 
 		// Set up the text
@@ -290,7 +292,9 @@ final class ImageGenerator
 
 		// Set text color
 		$clut = new Imagick();
-		$clut->newImage(1, 1, new ImagickPixel($template['text-color']));
+		$textColorPixel = new ImagickPixel($template['text-color']);
+		$clut->newImage(1, 1, $textColorPixel);
+		$textColorPixel->destroy();
 		$theText->clutImage($clut, 7);
 		$clut->destroy();
 
@@ -314,7 +318,9 @@ final class ImageGenerator
 		if ($template['use-article-image'] !== '0' && $extraImage)
 		{
 			$extraCanvas = new Imagick();
-			$extraCanvas->newImage($templateWidth, $templateHeight, new ImagickPixel('transparent'));
+			$transparentPixel = new ImagickPixel('transparent');
+			$extraCanvas->newImage($templateWidth, $templateHeight, $transparentPixel);
+			$transparentPixel->destroy();
 
 			if ($template['image-cover'] === '1')
 			{
@@ -361,6 +367,8 @@ final class ImageGenerator
 					$imgX,
 					$imgY);
 			}
+
+			$extraCanvas->destroy();
 		}
 
 		// Composite bestfit caption over base image.
@@ -369,6 +377,8 @@ final class ImageGenerator
 			Imagick::COMPOSITE_DEFAULT,
 			$xPos,
 			$yPos);
+
+		$theText->destroy();
 
 		// Write the image as a PNG file
 		$image->setImageFormat('png');
@@ -381,6 +391,8 @@ final class ImageGenerator
 		{
 			File::write($filename, $image);
 		}
+
+		$image->destroy();
 
 		$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
 
