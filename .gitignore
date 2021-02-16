@@ -1,1 +1,7 @@
+### Releases
+# This is where releases are built for upload to GitHub
+releases/
+
+### Composer
+# You shouldn't need to do `composer install`. We only save metadata in composer.json.
 vendor/

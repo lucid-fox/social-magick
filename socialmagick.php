@@ -1,6 +1,6 @@
 <?php
 /*
- * SocialMagick – Automatically generate Open Graph images on your site
+ * Social Magick – Automatically generate Open Graph images on your site
  *
  * @package   socialmagick
  * @copyright Copyright 2021-2021 Lucid Fox

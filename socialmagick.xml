@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ SocialMagick – Automatically generate Open Graph images on your site
+  ~ Social Magick – Automatically generate Open Graph images on your site
   ~
   ~ @package   socialmagick
   ~ @copyright Copyright 2021-2021 Lucid Fox
@@ -323,4 +323,14 @@
             </fieldset>
         </fields>
     </config>
+
+    <!-- Installation script -->
+    <scriptfile>script.plg_system_socialmagick.php</scriptfile>
+
+    <!-- Update servers -->
+    <updateservers>
+        <server type="extension" priority="1" name="Social Magick Updates">
+            https://raw.githubusercontent.com/lucid-fox/socialmagick/main/update/socialmagick.xml
+        </server>
+    </updateservers>
 </extension>

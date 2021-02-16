@@ -1,6 +1,6 @@
 <?php
 /*
- * SocialMagick – Automatically generate Open Graph images on your site
+ * Social Magick – Automatically generate Open Graph images on your site
  *
  * @package   socialmagick
  * @copyright Copyright 2021-2021 Lucid Fox
@@ -13,7 +13,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Form\FormHelper;
 use Joomla\CMS\HTML\HTMLHelper;
 
-FormHelper::loadFieldClass('radio');
+FormHelper::loadFieldClass('list');
 
 /**
  * Select a SocialMagick template
@@ -33,7 +33,7 @@ class JFormFieldSocialmagicktemplate extends JFormFieldList
 		{
 			if (empty($result) || !is_array($result))
 			{
-				return;
+				return [];
 			}
 
 			$templates = array_merge($templates, array_keys($result));
