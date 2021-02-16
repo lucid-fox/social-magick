@@ -155,6 +155,16 @@ final class ImageGenerator
 		return class_exists('Imagick') && class_exists('ImagickPixel');
 	}
 
+	private function setTimeLimit(int $limit = 0)
+	{
+		if (!function_exists('set_time_limit'))
+		{
+			return;
+		}
+
+		@set_time_limit($limit);
+	}
+
 	/**
 	 * Returns the generated Open Graph image and its information.
 	 *
@@ -224,6 +234,28 @@ final class ImageGenerator
 		{
 			Folder::create($imageOutputFolder);
 		}
+
+		/**
+		 * ***** !!! WARNING !!! ***** !!! DO NOT REMOVE THIS LINE !!!! *****
+		 *
+		 * Constructing an Imagick object seems to trigger some sort of weird bug in PHP's Imagick extension which
+		 * causes an immediate timeout once we return from the code context that manipulates the image. This happens
+		 * intermittently. I know it's not a bug in our code because even creating and immediately destroying a blank
+		 * Imagick object has this weird effect. Setting the PHP timeout to zero before creating an Imagick object fixes
+		 * this. Hence this weird line here!
+		 *
+		 * Note that the immediate timeout is definitely bogus. PHP says that the 30 seconds maximum execution time is
+		 * exceeded when the **entire** page load time up to that point was less than 2 wall clock seconds. Even if PHP,
+		 * which is single threaded, somehow magically managed to use all 8 cores of my machine it would still be less
+		 * than 16 CPU-seconds, i.e. less than the 30 seconds of CPU time allotted by PHP's max_execution_time (remember
+		 * that PHP counts CPU-seconds, not wall clock seconds). So why this happens must be some kind of weird bug in
+		 * the PHP Imagick extension.
+		 *
+		 * CAVEAT: If you use ANY kind of code which calls PHP's set_time_limit with a non-zero value you will STILL get
+		 * the immediate timeout. This applies to Joomla's File and Folder classes which are required when using the FTP
+		 * layer. In those cases you MUST disable development mode in the plugin or it will keep breaking your site.
+		 */
+		$this->setTimeLimit(0);
 
 		// Setup the base image upon which we will superimpose the layered image (if any) and the text
 		$image = new Imagick();
