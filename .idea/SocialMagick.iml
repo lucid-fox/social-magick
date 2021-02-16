@@ -28,6 +28,8 @@
       <excludeFolder url="file://$MODULE_DIR$/vendor/psr/cache" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/clue/stream-filter" />
       <excludeFolder url="file://$MODULE_DIR$/vendor/czproject/git-php" />
+      <excludeFolder url="file://$MODULE_DIR$/release" />
+      <excludeFolder url="file://$MODULE_DIR$/update" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

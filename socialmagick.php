@@ -107,6 +107,16 @@ class plgSystemSocialmagick extends CMSPlugin
 			case 'com_menus.item':
 				$form->loadFile('socialmagick_menu', false);
 				break;
+
+			// A core content category is being added/edited
+			case 'com_categories.categorycom_content':
+				$form->loadFile('socialmagick_category', false);
+				break;
+
+			// An article is being added/edited
+			case 'com_content.article':
+				$form->loadFile('socialmagick_article', false);
+				break;
 		}
 
 		return true;
@@ -142,7 +152,12 @@ class plgSystemSocialmagick extends CMSPlugin
 		switch ($context)
 		{
 			case 'com_menus.item':
+			case 'com_categories.category':
 				$key = 'params';
+				break;
+
+			case 'com_content.article':
+				$key = 'attribs';
 				break;
 		}
 
@@ -174,7 +189,12 @@ class plgSystemSocialmagick extends CMSPlugin
 		switch ($context)
 		{
 			case 'com_menus.item':
+			case 'com_categories.category':
 				$key = 'params';
+				break;
+
+			case 'com_content.article':
+				$key = 'attribs';
 				break;
 		}
 

@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Social Magick – Automatically generate Open Graph images on your site
+  ~
+  ~ @package   socialmagick
+  ~ @copyright Copyright 2021-2021 Lucid Fox
+  ~ @license   GNU GPL v3 or later
+  -->
+<form>
+    <fields name="socialmagick" addfieldpath="/plugins/system/socialmagick/fields">
+        <fieldset name="socialmagick"
+                  label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_FIELDSET_SOCIALMAGICK_HEAD"
+
+        >
+            <field
+                    type="note"
+                    class="alert alert-info"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_NOTES"
+            />
+
+            <!-- CATEGORY OPTIONS -->
+
+            <field
+                    name="header_category"
+                    type="note"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_CATEGORY_HEAD_CATEGORY"
+            />
+
+            <field
+                name="category_override"
+                type="fancyradio"
+                label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_LABEL"
+                description="PLG_SYSTEM_SOCIALMAGICK_FORM_CATEGORY_OVERRIDE_DESC"
+                class="btn-group btn-group-yesno"
+                default="0"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="category_generate_images"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="0"
+                    showon="category_override:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="category_template"
+                    type="socialmagicktemplate"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_DESC"
+                    showon="category_override:1[AND]category_generate_images:1"
+            />
+
+            <field
+                    name="category_custom_text"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_DESC"
+                    filter="no_html"
+                    showon="category_override:1[AND]category_generate_images:1"
+                />
+
+            <field
+                    name="category_use_article"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="1"
+                    showon="category_override:1[AND]category_generate_images:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="category_use_title"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="1"
+                    showon="category_override:1[AND]category_generate_images:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="category_image_source"
+                    type="list"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="none"
+                    showon="category_override:1[AND]category_generate_images:1"
+            >
+                <option value="none">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_NONE</option>
+                <option value="intro">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_INTRO</option>
+                <option value="fulltext">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_FULLTEXT</option>
+                <option value="custom">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_CUSTOMFIELD</option>
+            </field>
+
+            <field
+                    name="category_image_field"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_DESC"
+                    filter="no_html"
+                    showon="category_override:1[AND]category_image_source:custom[AND]category_generate_images:1"
+            />
+
+            <field
+                    name="category_override_og"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_OG_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_OG_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="0"
+                    showon="category_override:1[AND]category_generate_images:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <!-- ARTICLE OPTIONS -->
+
+            <field
+                    name="header_articles"
+                    type="note"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_CATEGORY_HEAD_ARTICLES"
+            />
+
+            <field
+                    name="article_override"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_CATEGORY_ARTICLE_OVERRIDE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="0"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="article_generate_images"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="0"
+                    showon="article_override:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="article_template"
+                    type="socialmagicktemplate"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_DESC"
+                    showon="article_override:1[AND]article_generate_images:1"
+            />
+
+            <field
+                    name="article_custom_text"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_DESC"
+                    filter="no_html"
+                    showon="article_override:1[AND]article_generate_images:1"
+            />
+
+            <field
+                    name="article_use_article"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="1"
+                    showon="article_override:1[AND]article_generate_images:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="article_use_title"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="1"
+                    showon="article_override:1[AND]article_generate_images:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="article_image_source"
+                    type="list"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="none"
+                    showon="article_override:1[AND]article_generate_images:1"
+            >
+                <option value="none">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_NONE</option>
+                <option value="intro">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_INTRO</option>
+                <option value="fulltext">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_FULLTEXT</option>
+                <option value="custom">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_CUSTOMFIELD</option>
+            </field>
+
+            <field
+                    name="article_image_field"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_DESC"
+                    filter="no_html"
+                    showon="article_override:1[AND]article_image_source:custom[AND]article_generate_images:1"
+            />
+
+            <field
+                    name="article_override_og"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_OG_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_OG_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="0"
+                    showon="article_override:1[AND]article_generate_images:1"
+            >
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+        </fieldset>
+    </fields>
+</form>
