@@ -15,7 +15,7 @@ For example:
 |----------|---------|----------|-------|
 |![Facebook Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/Facebook-Example.png?raw=true)|![Twitter Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/Twitter-Example.png?raw=true)|![LinkedIn Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/LinkedIn-Example.png?raw=true)|![Slack Example](https://github.com/lucid-fox/social-magick/blob/main/_assets/Slack-Example.png?raw=true)|
 
-(Want to check what your site shows now? Check out [metatags.io](https://metatags.io/), a site that shows you previews of all social media cards for your link.
+(Want to check what your site shows now? Check out [metatags.io](https://metatags.io/), a site that shows you previews of all social media cards for your link.)
 
 ## Requirements
 
