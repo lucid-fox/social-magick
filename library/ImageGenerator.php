@@ -257,7 +257,10 @@ final class ImageGenerator
 		 * This is definitely a weird Joomla 4 issue which I am strongly disinclined to debug. I am just going to go
 		 * through with this unholy, dirty trick and call it a day.
 		 */
-		$this->setTimeLimit(0);
+		if (version_compare(JVERSION, '3.999.999', 'gt'))
+		{
+			$this->setTimeLimit(0);
+		}
 
 		// Setup the base image upon which we will superimpose the layered image (if any) and the text
 		$image = new Imagick();
