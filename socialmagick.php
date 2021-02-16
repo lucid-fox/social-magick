@@ -128,7 +128,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		if (is_null($data) && version_compare(JVERSION, '3.999.999', 'le'))
 		{
 			$input = Factory::getApplication()->input;
-			$data = $input->get('jform', [], 'array');
+			$data  = $input->get('jform', [], 'array');
 		}
 
 		// Make sure I have data to save
@@ -194,12 +194,27 @@ class plgSystemSocialmagick extends CMSPlugin
 		return true;
 	}
 
+	/**
+	 * Returns all Social Magick templates known to the plugin
+	 *
+	 * @return  array
+	 *
+	 * @since   1.0.0
+	 */
 	public function onSocialMagickGetTemplates(): array
 	{
 		return $this->helper->getTemplates();
 	}
 
-	public function onBeforeRender()
+	/**
+	 * Runs before Joomla renders the HTML document.
+	 *
+	 * This is the main event where Social Magick evaluates whether to apply an Open Graph image to the document.
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
+	public function onBeforeRender(): void
 	{
 		// Is this plugin even supported?
 		if (!$this->helper->isAvailable())
@@ -387,6 +402,16 @@ class plgSystemSocialmagick extends CMSPlugin
 		return '';
 	}
 
+	/**
+	 * Gets the additional image to apply to the article
+	 *
+	 * @param   string|null  $imageSource  The image source type: `none`, `intro`, `fulltext`, `custom`.
+	 * @param   string|null  $imageField   The name of the Joomla! Custom Field when `$imageSource` is `custom`.
+	 *
+	 * @return  string|null  The (hopefully relative) image path. NULL if no image is found or applicable.
+	 *
+	 * @since   1.0.0
+	 */
 	private function getExtraImage(?string $imageSource, ?string $imageField): ?string
 	{
 		if (empty($imageSource))
