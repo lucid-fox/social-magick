@@ -211,9 +211,11 @@ final class ImageGenerator
 		$templateHeight = $template['template-h'] ?? 630;
 
 		// Get the generated image filename and URL
-		$filename         = Path::clean(sprintf("%s/%s%s.png",
+		$outputFolder     = trim($this->outputFolder, '/\\');
+		$outputFolder     = str_replace('\\', '/', $outputFolder);
+		$filename         = Path::clean(sprintf("%s/%s/%s.png",
 			JPATH_ROOT,
-			$this->outputFolder,
+			$outputFolder,
 			md5($text . $templateName . serialize($template))
 		));
 		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)), '/');
