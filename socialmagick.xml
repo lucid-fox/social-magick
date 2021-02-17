@@ -42,12 +42,8 @@
         <fields name="params" addfieldpath="/plugins/system/socialmagick/fields">
             <fieldset name="basic">
                 <field
-                        name="output_folder"
-                        type="text"
-                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OUTPUT_FOLDER_LABEL"
-                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OUTPUT_FOLDER_DESC"
-                        default="images/og-generated"
-                        filter="path"
+                        type="note"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BYMEACOFFEE"
                 />
 
                 <field name="og-templates" type="subform"
@@ -308,6 +304,17 @@
                         />
                     </form>
                 </field>
+            </fieldset>
+            <fieldset name="advanced">
+                <field
+                        name="output_folder"
+                        type="text"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OUTPUT_FOLDER_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OUTPUT_FOLDER_DESC"
+                        default="images/og-generated"
+                        filter="path"
+                />
+
 
                 <field
                         name="quality"
