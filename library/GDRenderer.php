@@ -1,0 +1,928 @@
+<?php
+/*
+ * Social Magick – Automatically generate Open Graph images on your site
+ *
+ * @package   socialmagick
+ * @copyright Copyright 2021-2021 Lucid Fox
+ * @license   GNU GPL v3 or later
+ */
+
+/**
+ * @package     LucidFox\SocialMagick
+ * @subpackage
+ *
+ * @copyright   A copyright
+ * @license     A "Slug" license name e.g. GPL2
+ */
+
+namespace LucidFox\SocialMagick;
+
+
+use Joomla\CMS\Filesystem\File;
+
+class GDRenderer
+{
+	/**
+	 * Generated image quality, 0-100
+	 *
+	 * This is used verbatim for WebP and JPEG. It's converted to a compression scale of 0-9 (100 maps to 0) for PNG.
+	 * Completely ignored for GIF and other formats.
+	 *
+	 * @var   int
+	 * @since 1.0.0
+	 */
+	private $quality = 80;
+
+	public function makeOGImage(string $text, array $template, string $outFile, ?string $extraImage)
+	{
+		// Get the template's dimensions
+		$templateWidth  = $template['template-w'] ?? 1200;
+		$templateHeight = $template['template-h'] ?? 630;
+
+		// Get the base image (resized image file or solid color image)
+		if ($template['base-image'])
+		{
+			// So, Joomla 4 adds some crap to the image. Let's fix that.
+			$baseImage       = $template['base-image'];
+			$questionMarkPos = strrpos($baseImage, '?');
+
+			if ($questionMarkPos !== false)
+			{
+				$baseImage = substr($baseImage, 0, $questionMarkPos);
+			}
+
+			if (!@file_exists($baseImage))
+			{
+				$baseImage = JPATH_ROOT . '/' . $baseImage;
+			}
+
+			[$image, $baseImageWidth, $baseImageHeight] = $this->loadImageFile($baseImage);
+			$image = $this->resizeImage($image, $baseImageWidth, $baseImageHeight, $templateWidth, $templateHeight);
+		}
+		else
+		{
+			$opacity         = $template['base-color-alpha'];
+			$alpha           = round($opacity * 127);
+			$colorProperties = $this->hexToRGBA($template['base-color']);
+
+			$image = imagecreatetruecolor($templateWidth, $templateHeight);
+
+			imagealphablending($image, false);
+			$color = imagecolorallocatealpha($image, $colorProperties[0], $colorProperties[1], $colorProperties[2], $alpha);
+			imagefilledrectangle($image, 0, 0, $templateWidth, $templateHeight, $color);
+			imagealphablending($image, true);
+		}
+
+		// Pre-render the text
+		[
+			$textImage, $textImageWidth, $textImageHeight,
+		] = $this->renderText($text, $template['text-color'], $template['text-align'], $template['text-font'], $template['font-size'], $template['text-width'], $template['text-height'], 1.1);
+		$centerVertically   = $template['text-y-center'] == 1;
+		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
+		$centerHorizontally = $template['text-x-center'] == 1;
+		$horizontalOffset   = $centerHorizontally ? $template['text-x-adjust'] : $template['text-x-absolute'];
+
+		[
+			$textOffsetX, $textOffsetY,
+		] = $this->getTextRenderOffsets($templateWidth, $templateHeight, $textImageWidth, $textImageHeight, $centerVertically, $verticalOffset, $centerHorizontally, $horizontalOffset);
+
+		// Layer an extra image, if necessary
+		if (!empty($extraImage) && ($template['use-article-image'] !== '0'))
+		{
+			$image = $this->layerExtraImage($image, $extraImage, $template);
+		}
+
+		// Render text
+		imagealphablending($image, true);
+		imagealphablending($textImage, true);
+		imagecopy($image, $textImage, $textOffsetX - 50, $textOffsetY - 50, 0, 0, $textImageWidth + 100, $textImageHeight + 100);
+		imagedestroy($textImage);
+
+		// Write out the image file...
+		$imageType  = $this->getNormalizedExtension($outFile);
+		imagesavealpha($image, true);
+		@ob_start();
+
+		switch ($imageType)
+		{
+			case 'png':
+				if (function_exists('imagepng'))
+				{
+					$ret = @imagepng($image, null, max((int) ceil((100 - $this->quality) / 10), 9));
+				}
+
+				break;
+
+			case 'gif':
+				if (function_exists('imagegif'))
+				{
+					$ret = @imagegif($image, null);
+				}
+
+				break;
+			case 'bmp':
+				if (function_exists('imagebmp'))
+				{
+					$ret = @imagebmp($image, null);
+				}
+
+				break;
+			case 'wbmp':
+				if (function_exists('imagewbmp'))
+				{
+					$ret = @imagewbmp($image, null);
+				}
+
+				break;
+			case 'jpg':
+				if (function_exists('imagejpeg'))
+				{
+					$ret = @imagejpeg($image, null, $this->quality);
+				}
+
+				break;
+			case 'xbm':
+				if (function_exists('imagexbm'))
+				{
+					$ret = @imagexbm($image, null);
+				}
+
+				break;
+			case 'webp':
+				if (function_exists('imagewebp'))
+				{
+					$ret = @imagewebp($image, null, $this->quality);
+				}
+
+				break;
+		}
+
+		$imageData = @ob_get_clean();
+
+		imagedestroy($image);
+
+		if (!file_put_contents($outFile, $imageData))
+		{
+			File::write($outFile, $imageData);
+		}
+	}
+
+	/**
+	 * Get the image type by extension
+	 *
+	 * The extension case does not matter.
+	 *
+	 * @param   string  $file
+	 *
+	 * @return  string|null
+	 * @since   1.0.0
+	 */
+	private function getNormalizedExtension(string $file): ?string
+	{
+		if (empty($file))
+		{
+			return null;
+		}
+
+		$extension = pathinfo($file, PATHINFO_EXTENSION);
+
+		switch ($extension)
+		{
+			// JPEG files come in different extensions
+			case 'jpg':
+			case 'jpe':
+			case 'jpeg':
+				return 'jpg';
+				break;
+
+			default:
+				return $extension;
+				break;
+		}
+	}
+
+	/**
+	 * Resize and blend an extra image (if applicable) over/under the provided $image resource
+	 *
+	 * @param   resource     $image           GD image resource. The extra image is blended over or under it.
+	 * @param   string|null  $extraImagePath  Full filesystem path of the image to blend over/under $image.
+	 * @param   array        $template        The Social Magick template which defines the blending options.
+	 *
+	 * @return  resource  The resulting image resource
+	 *
+	 * @since   1.0.0
+	 */
+	private function layerExtraImage($image, ?string $extraImagePath, array $template)
+	{
+		// If we don't have an image, it doesn't exist or is unreadable return the original image unmodified
+		if (empty($extraImagePath))
+		{
+			return $image;
+		}
+
+		if (!@file_exists($extraImagePath))
+		{
+			$extraImagePath = JPATH_ROOT . '/' . $extraImagePath;
+		}
+
+		if (!@file_exists($extraImagePath) || !@is_file($extraImagePath) || !@is_readable($extraImagePath))
+		{
+			return $image;
+		}
+
+		// Load the image
+		[$tmpImg, $width, $height] = $this->loadImageFile($extraImagePath);
+
+
+		// Create a transparent canvas
+		$templateWidth  = $template['template-w'] ?? 1200;
+		$templateHeight = $template['template-h'] ?? 630;
+		$extraCanvas    = imagecreatetruecolor($templateWidth, $templateHeight);
+
+		imagealphablending($extraCanvas, false);
+		$color = imagecolorallocatealpha($extraCanvas, 255, 255, 255, 127);
+		imagefilledrectangle($extraCanvas, 0, 0, $templateWidth, $templateHeight, $color);
+		imagealphablending($image, true);
+
+		if ($template['image-cover'] === '1')
+		{
+			$tmpWidth  = $templateWidth;
+			$tmpHeight = $templateHeight;
+			$imgX      = 0;
+			$imgY      = 0;
+		}
+		else
+		{
+			$tmpWidth  = $template['image-width'];
+			$tmpHeight = $template['image-height'];
+			$imgX      = $template['image-x'];
+			$imgY      = $template['image-y'];
+		}
+
+		$tmpImg = $this->resizeImage($tmpImg, $width, $height, $tmpWidth, $tmpHeight);
+
+		imagealphablending($extraCanvas, true);
+		imagecopy($extraCanvas, $tmpImg, $imgX, $imgY, 0, 0, $tmpWidth, $tmpHeight);
+		imagedestroy($tmpImg);
+
+		if ($template['image-z'] === 'under')
+		{
+			// Copy $image OVER $extraCanvas
+			imagealphablending($extraCanvas, true);
+			imagecopy($extraCanvas, $image, 0, 0, 0, 0, $templateWidth, $templateHeight);
+			imagedestroy($image);
+
+			$image = $extraCanvas;
+		}
+		else
+		{
+			// Copy $extraCanvas OVER image
+			imagealphablending($image, true);
+			imagecopy($image, $extraCanvas, 0, 0, 0, 0, $templateWidth, $templateHeight);
+			imagedestroy($extraCanvas);
+		}
+
+		return $image;
+	}
+
+	/**
+	 * Load an image file into a GD image and get its dimensions
+	 *
+	 * @param   string  $filePath  The fully qualified filesystem path of the file
+	 *
+	 * @return  array [$image, $width, $height]
+	 *
+	 * @since   1.0.0
+	 */
+	private function loadImageFile(string $filePath): array
+	{
+		// Make suer the file exists and is readable, otherwise pretend getimagesize() failed.
+		if (@file_exists($filePath) && @is_file($filePath) && @is_readable($filePath))
+		{
+			$info = @getimagesize($filePath);
+		}
+		else
+		{
+			$info = false;
+		}
+
+		// If we can't open or get info for the image we're creating a dummy 320x200 solid black image.
+		if ($info === false)
+		{
+			$width  = 320;
+			$height = 200;
+			$type   = PHP_INT_MAX;
+		}
+		else
+		{
+			[$width, $height, $type,] = $info;
+		}
+
+		switch ($type)
+		{
+			case IMAGETYPE_BMP:
+				$image = imagecreatefrombmp($filePath);
+				break;
+
+			case IMAGETYPE_GIF:
+				$image = imagecreatefromgif($filePath);
+				break;
+
+			case IMAGETYPE_JPEG:
+				$image = imagecreatefromjpeg($filePath);
+				break;
+
+			case IMAGETYPE_PNG:
+				$image = imagecreatefrompng($filePath);
+				break;
+
+			case IMAGETYPE_WBMP:
+				$image = imagecreatefromwbmp($filePath);
+				break;
+
+			case IMAGETYPE_XBM:
+				$image = imagecreatefromxpm($filePath);
+				break;
+
+			case IMAGETYPE_WEBP:
+				$image = imagecreatefromwebp($filePath);
+				break;
+
+			default:
+				$image = imagecreatetruecolor($width, $height);
+				$black = imagecolorallocate($image, 0, 0, 0);
+				imagefilledrectangle($image, 0, 0, $width, $height, $black);
+				break;
+		}
+
+		return [$image, $width, $height];
+	}
+
+	/**
+	 * Resize and crop an image
+	 *
+	 * @param   resource  $image      The GD image resource.
+	 * @param   int       $oldWidth   Original image width, in pixels.
+	 * @param   int       $oldHeight  Original image height, in pixels.
+	 * @param   int       $newWidth   Required image width, in pixels.
+	 * @param   int       $newHeight  Required image height, in pixels.
+	 * @param   string    $focus      Crop focus. One of 'northwest', 'center', 'northeast', 'southwest', 'southeast'
+	 *
+	 * @return  resource
+	 *
+	 * @since   1.0.0
+	 */
+	private function resizeImage(&$image, int $oldWidth, int $oldHeight, int $newWidth, int $newHeight, string $focus = 'center')
+	{
+		// Get the resize dimensions
+		$resizeWidth  = $newWidth;
+		$resizeHeight = $oldHeight * $newWidth / $oldWidth;
+
+		if ($oldWidth > $oldHeight)
+		{
+			$resizeWidth  = $oldWidth * $newHeight / $oldHeight;
+			$resizeHeight = $newHeight;
+
+			if ($resizeWidth < $newWidth)
+			{
+				$resizeWidth  = $newWidth;
+				$resizeHeight = $oldHeight * $newWidth / $oldWidth;
+			}
+		}
+
+		// Resize the image
+		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
+		imagealphablending($newImage, false);
+		$transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
+		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
+		imagealphablending($newImage, true);
+
+		imagecopyresampled($newImage, $image, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $oldWidth, $oldHeight);
+		imagedestroy($image);
+		$image = $newImage;
+		unset($newImage);
+
+		// TODO Crop the image
+		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
+		imagealphablending($newImage, false);
+		$transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
+		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
+		imagealphablending($newImage, true);
+
+		switch ($focus)
+		{
+			case 'northwest':
+				imagecopyresampled($newImage, $image, 0, 0, 0, 0, $newWidth, $newHeight, $resizeWidth, $resizeHeight);
+				break;
+
+			default:
+			case 'center':
+				imagecopyresampled($newImage, $image, 0, 0, ($resizeWidth - $newWidth) / 2, ($resizeHeight - $newHeight) / 2, $newWidth, $newHeight, $resizeWidth, $resizeHeight);
+				break;
+
+			case 'northeast':
+				imagecopyresampled($newImage, $image, 0, 0, $resizeWidth - $newWidth, 0, $newWidth, $newHeight, $resizeWidth, $resizeHeight);
+				break;
+
+			case 'southwest':
+				imagecopyresampled($newImage, $image, 0, 0, 0, $resizeHeight - $newHeight, $newWidth, $newHeight, $resizeWidth, $resizeHeight);
+				break;
+
+			case 'southeast':
+				imagecopyresampled($newImage, $image, 0, 0, $resizeWidth - $newWidth, $resizeHeight - $newHeight, $newWidth, $newHeight, $resizeWidth, $resizeHeight);
+				break;
+		}
+
+		imagedestroy($image);
+		$image = $newImage;
+		unset($newImage);
+
+		// Sharpen the resized and cropped image. Necessary since GD doesn't do Lanczos resampling :(
+		$intSharpness = $this->findSharp($oldWidth, $newWidth);
+
+		$arrMatrix = [
+			[
+				-1,
+				-2,
+				-1,
+			],
+			[
+				-2,
+				$intSharpness + 12,
+				-2,
+			],
+			[
+				-1,
+				-2,
+				-1,
+			],
+		];
+
+		imageconvolution($image, $arrMatrix, $intSharpness, 0);
+
+		return $image;
+	}
+
+	/**
+	 * Render text as a transparent image that's 50px oversized in every dimension.
+	 *
+	 * @param   string  $text         The text to render.
+	 * @param   string  $color        The hex color to render it in.
+	 * @param   string  $alignment    Horizontal alignment: 'left', 'center', 'right'.
+	 * @param   string  $font         The font file to render it with.
+	 * @param   int     $fontSize     The font size, in points.
+	 * @param   int     $maxWidth     Maximum text render width, in pixels.
+	 * @param   int     $maxHeight    Maximum text render height, in pixels.
+	 * @param   float   $lineSpacing  Line spacing factor. 1.1 is recommended.
+	 *
+	 * @return  array  [$image, $textWidth, $textHeight]  The width and height include the 50px margin on all sides
+	 *
+	 * @since   1.0.0
+	 */
+	private function renderText(string $text, string $color, string $alignment, string $font, int $fontSize, int $maxWidth, int $maxHeight, float $lineSpacing = 1.1)
+	{
+		// Pre-process text
+		$text = $this->preProcessText($text);
+
+		// Get the color
+		$colorValues = $this->hexToRGBA($color);
+
+		// Quick escape route: if the rendered string length is smaller than the maximum width
+		$lines = $this->toLines($text, $fontSize, $font, $maxWidth);
+
+		// Apply the line spacing
+		$lines = $this->applyLineSpacing($lines, $lineSpacing);
+
+		// Cut off the lines which would get us over the maximum height
+		$lineCountBeforeMaxHeight = count($lines);
+		$lines                    = $this->applyMaximumHeight($lines, $maxHeight);
+		$lineCountAfterMaxHeight  = count($lines);
+
+		// Add ellipses to the last line if the text didn't fit.
+		if ($lineCountAfterMaxHeight < $lineCountBeforeMaxHeight)
+		{
+			$lastLine = array_pop($lines);
+
+			// Try adding ellipses to the last line
+			$testText       = $lastLine['text'] . '…';
+			$testDimensions = $this->lineSize($testText, $fontSize, $font);
+
+			/**
+			 * If the last line is too big to fit remove the ellipses, the last word and space and re-add the ellipses,
+			 * as long as there are more than one words.
+			 */
+			if ($testDimensions[0] > $maxWidth)
+			{
+				$words = explode(' ', $lastLine['text']);
+
+				if (count($words) > 1)
+				{
+					array_pop($words);
+					$lastLine['text'] = implode(' ', $words) . '…';
+				}
+			}
+
+			$lines[] = $lastLine;
+		}
+
+		// Align the lines horizontally
+		$lines = $this->horizontalAlignLines($lines, $alignment, $maxWidth);
+
+		// Get the real width and height of the text
+		$textWidth  = array_reduce($lines, function (int $carry, array $line) {
+			return max($carry, $line['width']);
+		}, 0);
+		$textHeight = array_reduce($lines, function (int $carry, array $line) {
+			return max($carry, $line['y'] + $line['height']);
+		}, 0);
+
+		// Create a transparent image with the text dimensions
+		$image = imagecreatetruecolor($textWidth + 100, $textHeight + 100);
+		imagealphablending($image, false);
+		$transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
+		imagefilledrectangle($image, 0, 0, $textWidth + 100, $textHeight + 100, $transparent);
+		imagealphablending($image, true);
+
+		// Render the text on the transparent image
+		$colorResource = imagecolorallocate($image, $colorValues[0], $colorValues[1], $colorValues[2]);
+
+		// Get the y offset because GD is doing weird things
+		$boundingBox = imagettfbbox($fontSize, 0, $font, $lines[0]['text']);
+		$yOffset     = -$boundingBox[7] + 1;
+
+		foreach ($lines as $line)
+		{
+			imagettftext($image, $fontSize, 0, 50 + $line['x'], 50 + $line['y'] + $yOffset, $colorResource, $font, $line['text']);
+		}
+
+		return [$image, $textWidth, $textHeight];
+	}
+
+	/**
+	 * Returns the rendering offsets for the text image over a base image.
+	 *
+	 * @param   int   $baseImageWidth      Base image width, in pixels.
+	 * @param   int   $baseImageHeight     Base image height, in pixels.
+	 * @param   int   $textImageWidth      Text image width, in pixels. This includes the 50px padding in either side.
+	 * @param   int   $textImageHeight     Text image height, in pixels. This includes the 50px padding in either side.
+	 * @param   bool  $centerVertically    Should I center the text vertically over the base image?
+	 * @param   int   $verticalOffset      Offset in the vertical direction. Positive moves text down, negative moves
+	 *                                     text up.
+	 * @param   bool  $centerHorizontally  Should I center the text horizontally over the base image?
+	 * @param   int   $horizontalOffset    Offset in the horizontal direction. Positive moves text right, negative
+	 *                                     moves text left.
+	 *
+	 * @return  int[] Returns [x, y] where the text image should be rendered over the base image
+	 *
+	 * @since   1.0.0
+	 */
+	private function getTextRenderOffsets(int $baseImageWidth, int $baseImageHeight, int $textImageWidth, int $textImageHeight, bool $centerVertically = false, int $verticalOffset = 0, bool $centerHorizontally = false, int $horizontalOffset = 0): array
+	{
+		// Remember that our text image has 50px of margin on all sides? We need to subtract it.
+		$realTextWidth  = $textImageWidth - 100;
+		$realTextHeight = $textImageHeight - 100;
+
+		// Start at the top left
+		$x = 0;
+		$y = 0;
+
+		// If centering vertically we need to calculate a different starting Y coordinate
+		if ($centerVertically)
+		{
+			$y = (int) (($baseImageHeight - $realTextHeight) / 2);
+		}
+
+		// Apply any vertical offset
+		$y += $verticalOffset;
+
+		// If centering horizontally we need to calculate a different starting X coordinate
+		if ($centerHorizontally)
+		{
+			$x = (int) (($baseImageWidth - $realTextWidth) / 2);
+		}
+
+		// Apply any horizontal offset
+		$x += $horizontalOffset;
+
+		// Remember the 50px margin? We need to subtract it (yes, it may take us to negative dimensions, this is normal)
+		$x -= 50;
+		$y -= 50;
+
+		return [$x, $y];
+	}
+
+	/**
+	 * Sharpen images function.
+	 *
+	 * @param   int  $intOrig
+	 * @param   int  $intFinal
+	 *
+	 * @return  int
+	 * @since   1.0.0
+	 *
+	 * @see     https://github.com/MattWilcox/Adaptive-Images/blob/master/adaptive-images.php#L109
+	 */
+	private function findSharp($intOrig, $intFinal)
+	{
+		$intFinal = $intFinal * (750.0 / $intOrig);
+		$intA     = 52;
+		$intB     = -0.27810650887573124;
+		$intC     = .00047337278106508946;
+		$intRes   = $intA + $intB * $intFinal + $intC * $intFinal * $intFinal;
+
+		return max(round($intRes), 0);
+	}
+
+	/**
+	 * Pre-processes the text before rendering.
+	 *
+	 * This method removes Emoji and Dingbats, collapses double spaces into single spaces and converts all whitespace
+	 * into spaces. Finally, it converts non-ASCII characters into HTML entities so that GD can render them correctly.
+	 *
+	 * @param   string  $text
+	 *
+	 * @return  string
+	 *
+	 * @since   1.0.0
+	 */
+	private function preProcessText(string $text)
+	{
+		$text = $this->stripEmoji($text);
+		$text = preg_replace('/\s/', ' ', $text);
+		$text = preg_replace('/\s{2,}/', ' ', $text);
+
+		return htmlentities($text);
+	}
+
+	/**
+	 * Strip Emoji and Dingbats off a string
+	 *
+	 * @param   string  $string  The string to process
+	 *
+	 * @return  string  The cleaned up string
+	 *
+	 * @since   1.0.0
+	 */
+	private function stripEmoji(string $string): string
+	{
+
+		// Match Emoticons
+		$regex_emoticons = '/[\x{1F600}-\x{1F64F}]/u';
+		$clear_string    = preg_replace($regex_emoticons, '', $string);
+
+		// Match Miscellaneous Symbols and Pictographs
+		$regex_symbols = '/[\x{1F300}-\x{1F5FF}]/u';
+		$clear_string  = preg_replace($regex_symbols, '', $clear_string);
+
+		// Match Transport And Map Symbols
+		$regex_transport = '/[\x{1F680}-\x{1F6FF}]/u';
+		$clear_string    = preg_replace($regex_transport, '', $clear_string);
+
+		// Match Miscellaneous Symbols
+		$regex_misc   = '/[\x{2600}-\x{26FF}]/u';
+		$clear_string = preg_replace($regex_misc, '', $clear_string);
+
+		// Match Dingbats
+		$regex_dingbats = '/[\x{2700}-\x{27BF}]/u';
+		$clear_string   = preg_replace($regex_dingbats, '', $clear_string);
+
+		return $clear_string;
+	}
+
+	/**
+	 * Convert a hexadecimal color string to an array of Red, Green, Blue and Alpha values.
+	 *
+	 * @param   string  $hex
+	 *
+	 * @return  int[]  The [R,G,B,A] array of the color.
+	 *
+	 * @since   1.0.0
+	 */
+	private function hexToRGBA(string $hex): array
+	{
+		// Uppercase the hex color string
+		$hex = strtoupper($hex);
+
+		// Remove the hash sign in front
+		if (substr($hex, 0, 1) === '#')
+		{
+			$hex = substr($hex, 1);
+		}
+
+		// Convert ABC to AABBCC
+		if (strlen($hex) === 3)
+		{
+			$bits = str_split($hex, 1);
+			$hex  = $bits[0] . $bits[0] . $bits[1] . $bits[1] . $bits[2] . $bits[2];
+		}
+
+		// Make sure the hex color string is exactly 8 characters (format: RRGGBBAA
+		if (strlen($hex) < 8)
+		{
+			$hex = str_pad(str_pad($hex, 6, '0'), 8, 'F');
+		}
+
+		$hex = substr($hex, 0, 8);
+
+		$hexBytes = str_split($hex, 2);
+
+		$ret = [0, 0, 0, 255];
+
+		foreach ($hexBytes as $index => $hexByte)
+		{
+			$ret[$index] = hexdec($hexByte);
+		}
+
+		return $ret;
+	}
+
+	/**
+	 * Returns the width and height of a line of text
+	 *
+	 * @param   string  $text  The text to render
+	 * @param   int     $size  Font size, in points
+	 * @param   string  $font  Font file
+	 *
+	 * @return  array  [width, height]
+	 *
+	 * @since   1.0.0
+	 */
+	private function lineSize(string $text, int $size, string $font): array
+	{
+		$boundingBox = imagettfbbox($size, 0, $font, $text);
+
+		return [
+			$boundingBox[2] - $boundingBox[0],
+			$boundingBox[1] - $boundingBox[7],
+		];
+
+	}
+
+	/**
+	 * Chop the string to lines which are rendered up to a given maximum width
+	 *
+	 * @param   string  $text      The text to chop
+	 * @param   int     $size      Font size, in points
+	 * @param   string  $font      Font file
+	 * @param   int     $maxWidth  Maximum width for the rendered text, in pixels
+	 *
+	 * @return  array[] The individual lines along with their width and height metrics
+	 *
+	 * @since   1.0.0
+	 */
+	private function toLines(string $text, int $size, string $font, int $maxWidth): array
+	{
+		// Is the line narrow enough to call it a day?
+		$lineDimensions = $this->lineSize($text, $size, $font);
+
+		if ($lineDimensions[0] < $maxWidth)
+		{
+			return [
+				[
+					'text'   => $text,
+					'width'  => $lineDimensions[0],
+					'height' => $lineDimensions[1],
+				],
+			];
+		}
+
+		// Too wide. We'll walk one word at a time to construct individual lines.
+		$words             = explode(' ', $text);
+		$lines             = [];
+		$currentLine       = '';
+		$currentDimensions = [0, 0];
+
+		while (!empty($words))
+		{
+			$nextWord       = array_shift($words);
+			$testLine       = $currentLine . ($currentLine ? ' ' : '') . $nextWord;
+			$testDimensions = $this->lineSize($testLine, $size, $font);
+			$isOversize     = $testDimensions[0] > $maxWidth;
+
+			// Oversize word. Can't do much, your layout will suffer. I won't be doing hyphenation here!
+			if ($isOversize && ($currentDimensions[0] === 0))
+			{
+				$lines[]           = [
+					'text'   => $testLine,
+					'width'  => $testDimensions[0],
+					'height' => $testDimensions[1],
+				];
+				$currentLine       = '';
+				$currentDimensions = [0, 0];
+			}
+			// We exceeded the maximum width. Let's commit the previous line and push back the current word to the array
+			elseif ($isOversize)
+			{
+				$lines[]           = [
+					'text'   => $currentLine,
+					'width'  => $currentDimensions[0],
+					'height' => $currentDimensions[1],
+				];
+				$currentLine       = '';
+				$currentDimensions = [0, 0];
+
+				array_unshift($words, $nextWord);
+			}
+			// We have not reached the limit just yet.
+			else
+			{
+				$currentLine       = $testLine;
+				$currentDimensions = $testDimensions;
+			}
+		}
+
+		if (!empty($currentLine))
+		{
+			$lines[] = [
+				'text'   => $currentLine,
+				'width'  => $currentDimensions[0],
+				'height' => $currentDimensions[1],
+			];
+		}
+
+		return $lines;
+	}
+
+	/**
+	 * Apply the horizontal alignment for the given lines.
+	 *
+	 * Sets the `x` element of each line accordingly.
+	 *
+	 * @param   array   $lines      Text lines definitions to align horizontally.
+	 * @param   string  $alignment  Horizontal alignment: 'left', 'center', or 'right'.
+	 * @param   int     $maxWidth   Maximum rendered image width, in pixels
+	 *
+	 * @return  array
+	 *
+	 * @since   1.0.0
+	 */
+	private function horizontalAlignLines(array $lines, string $alignment, int $maxWidth): array
+	{
+		return array_map(function (array $line) use ($alignment, $maxWidth): array {
+			switch ($alignment)
+			{
+				case 'left':
+					$line['x'] = 0;
+					break;
+
+				case 'center':
+					$line['x'] = ($maxWidth - $line['width']) / 2.0;
+					break;
+
+				case 'right':
+					$line['x'] = $maxWidth - $line['width'];
+					break;
+			}
+
+			return $line;
+		}, $lines);
+	}
+
+	/**
+	 * Apply a line spacing factor.
+	 *
+	 * All lines will have a height equal to the highest lines times $lineSpacing. This method sets the `y` element of
+	 * each line accordingly.
+	 *
+	 * @param   array  $lines        Text lines definitions to apply line spacing to.
+	 * @param   float  $lineSpacing  The line spacing factor, e.g. 1.05 for 5% whitespace between lines
+	 *
+	 * @return  array
+	 *
+	 * @since   1.0.0
+	 */
+	private function applyLineSpacing(array $lines, float $lineSpacing): array
+	{
+		// Get the maximum line height
+		$maxHeight = array_reduce($lines, function (int $carry, array $line): int {
+			return max($carry, $line['height']);
+		}, 0);
+
+		$lineHeight = $maxHeight * $lineSpacing;
+		$i          = -1;
+
+		return array_map(function (array $line) use ($lineHeight, &$i) {
+			$i++;
+			$line['y'] = $i * $lineHeight;
+
+			return $line;
+		}, $lines);
+	}
+
+	/**
+	 * Strips off any lines which would cause the text to exceed the maximum permissible image height.
+	 *
+	 * @param   array  $lines      The line definitions.
+	 * @param   int    $maxHeight  The maximum permissible image height, in pixels.
+	 *
+	 * @return  array  The remaining lines
+	 *
+	 * @since   1.0.0
+	 */
+	private function applyMaximumHeight(array $lines, int $maxHeight): array
+	{
+		return array_filter($lines, function (array $line) use ($maxHeight): bool {
+			return ($line['y'] + $line['height']) <= $maxHeight;
+		});
+	}
+}
