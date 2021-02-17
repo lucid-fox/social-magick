@@ -54,7 +54,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			'imagecopyresampled',
 		];
 
-		return array_reduce($functions, function($carry, $function) {
+		return array_reduce($functions, function ($carry, $function) {
 			return $carry && function_exists($function);
 		}, true);
 	}
@@ -101,9 +101,11 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		}
 
 		// Pre-render the text
+		$fontSize = ((abs($template['font-size']) >= 1) ? abs($template['font-size']) : 24) * 0.755;
+		$fontPath = $this->normalizeFont($template['text-font']);
 		[
 			$textImage, $textImageWidth, $textImageHeight,
-		] = $this->renderText($text, $template['text-color'], $template['text-align'], $this->normalizeFont($template['text-font']), $template['font-size'] * 0.755, $template['text-width'], $template['text-height'], 1.35);
+		] = $this->renderText($text, $template['text-color'], $template['text-align'], $fontPath, $fontSize, $template['text-width'], $template['text-height'], 1.35);
 		$centerVertically   = $template['text-y-center'] == 1;
 		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
 		$centerHorizontally = $template['text-x-center'] == 1;

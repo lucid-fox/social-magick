@@ -10,6 +10,7 @@
 namespace LucidFox\SocialMagick;
 
 use Imagick;
+use ImagickDraw;
 use ImagickPixel;
 use Joomla\CMS\Filesystem\File;
 
@@ -87,7 +88,10 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 
 		/* Font properties */
 		$theText->setFont($this->normalizeFont($template['text-font']));
-		$theText->setPointSize($template['font-size']);
+		if ($template['font-size'] > 0)
+		{
+			$theText->setPointSize($template['font-size']);
+		}
 
 		/* Create text */
 		switch ($template['text-align'])
@@ -194,6 +198,40 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 			}
 
 			$extraCanvas->destroy();
+		}
+
+		if ($this->debugText)
+		{
+			$debugW = $theText->getImageWidth();
+			$debugH = $theText->getImageHeight();
+
+			$draw        = new ImagickDraw();
+			$strokeColor = new ImagickPixel('#ff00ff');
+			$fillColor   = new ImagickPixel('#ffff0050');
+			$draw->setStrokeColor($strokeColor);
+			$draw->setFillColor($fillColor);
+			$draw->setStrokeOpacity(1);
+			$draw->setStrokeWidth(2);
+			$draw->rectangle(1, 1, $debugW - 1, $debugH - 1);
+
+			$debugImage       = new Imagick();
+			$transparentPixel = new ImagickPixel('transparent');
+			$debugImage->newImage($debugW, $debugH, $transparentPixel);
+
+			$debugImage->drawImage($draw);
+
+			$strokeColor->destroy();
+			$fillColor->destroy();
+			$draw->destroy();
+			$transparentPixel->destroy();
+
+			$image->compositeImage(
+				$debugImage,
+				Imagick::COMPOSITE_OVER,
+				$xPos,
+				$yPos
+			);
+			$debugImage->destroy();
 		}
 
 		// Composite bestfit caption over base image.
