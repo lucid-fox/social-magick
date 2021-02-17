@@ -1,0 +1,296 @@
+<?php
+/*
+ * Social Magick – Automatically generate Open Graph images on your site
+ *
+ * @package   socialmagick
+ * @copyright Copyright 2021-2021 Lucid Fox
+ * @license   GNU GPL v3 or later
+ */
+
+namespace LucidFox\SocialMagick;
+
+use Imagick;
+use ImagickPixel;
+use Joomla\CMS\Filesystem\File;
+
+defined('_JEXEC') || die();
+
+class ImageRendererImagick extends ImageRendererAbstract implements ImageRendererInterface
+{
+	public function makeImage(string $text, array $template, string $outFile, ?string $extraImage): void
+	{
+		/**
+		 * ***** !!! WARNING !!! ***** !!! DO NOT REMOVE THIS LINE !!!! *****
+		 *
+		 * There is a really weird issue with Joomla 4 (does not happen in Joomla 3). This code:
+		 * $foo = new Imagick();
+		 * $foo->destroy();
+		 * set_time_limit(30);
+		 * causes an immediate timeout to trigger **even if** the wall clock time elapsed is under one second.
+		 *
+		 * Joomla calls set_time_limit() in its filesystem functions. So, any attempt to write the generated image file
+		 * on a site using the FTP layer would result in an inexplicable error about the time limit being exceeded even
+		 * when it doesn't happen.
+		 *
+		 * Even setting the time limits to ludicrous values, like 900000 (over a day!), triggers this weird bug.
+		 *
+		 * The only thing that works is setting a zero time limit.
+		 *
+		 * This is definitely a weird Joomla 4 issue which I am strongly disinclined to debug. I am just going to go
+		 * through with this unholy, dirty trick and call it a day.
+		 */
+		$this->setTimeLimit(0);
+
+		$text = $this->preProcessText($text, false);
+
+		// Get the template's dimensions
+		$templateWidth  = $template['template-w'] ?? 1200;
+		$templateHeight = $template['template-h'] ?? 630;
+
+		// Setup the base image upon which we will superimpose the layered image (if any) and the text
+		$image = new Imagick();
+
+		if ($template['base-image'])
+		{
+			// So, Joomla 4 adds some crap to the image. Let's fix that.
+			$baseImage       = $template['base-image'];
+			$questionMarkPos = strrpos($baseImage, '?');
+
+			if ($questionMarkPos !== false)
+			{
+				$baseImage = substr($baseImage, 0, $questionMarkPos);
+			}
+
+			if (!@file_exists($baseImage))
+			{
+				$baseImage = JPATH_ROOT . '/' . $baseImage;
+			}
+
+			$image = $this->resize($baseImage, $templateWidth, $templateHeight);
+		}
+		else
+		{
+			/* New image */
+			$opacity = $template['base-color-alpha'];
+			$alpha   = round($opacity * 255);
+			$hex     = substr(base_convert(($alpha + 0x10000), 10, 16), -2, 2);
+			$pixel   = new ImagickPixel($template['base-color'] . $hex);
+
+			$image->newImage($templateWidth, $templateHeight, $pixel);
+
+			$pixel->destroy();
+		}
+
+		// Set up the text
+		$theText = new Imagick();
+		$theText->setBackgroundColor('transparent');
+
+		/* Font properties */
+		$theText->setFont($this->normalizeFont($template['text-font']));
+		$theText->setPointSize($template['font-size']);
+
+		/* Create text */
+		switch ($template['text-align'])
+		{
+			default:
+			case 'center':
+				$theText->setGravity(Imagick::GRAVITY_CENTER);
+				break;
+
+			case 'left':
+				$theText->setGravity(Imagick::GRAVITY_WEST);
+				break;
+
+			case 'right':
+				$theText->setGravity(Imagick::GRAVITY_EAST);
+				break;
+		}
+
+		// Create a `caption:` pseudo image that only manages text.
+		$theText->newPseudoImage($template['text-width'],
+			$template['text-height'],
+			'caption:' . $text);
+		$theText->setBackgroundColor('transparent');
+
+		// Remove extra height.
+		$theText->trimImage(0.0);
+
+		// Set text color
+		$clut           = new Imagick();
+		$textColorPixel = new ImagickPixel($template['text-color']);
+		$clut->newImage(1, 1, $textColorPixel);
+		$textColorPixel->destroy();
+		$theText->clutImage($clut, 7);
+		$clut->destroy();
+
+		// Figure out text vertical position
+		$yPos = $template['text-y-absolute'];
+
+		if ($template['text-y-center'] == '1')
+		{
+			$yPos = ($image->getImageHeight() - $theText->getImageHeight()) / 2.0 + $template['text-y-adjust'];
+		}
+
+		// Figure out text horizontal position
+		$xPos = $template['text-x-absolute'];
+
+		if ($template['text-x-center'] == '1')
+		{
+			$xPos = ($image->getImageWidth() - $theText->getImageWidth()) / 2.0 + $template['text-x-adjust'];
+		}
+
+		// Add extra image
+		if ($template['use-article-image'] != '0' && $extraImage)
+		{
+			$extraCanvas      = new Imagick();
+			$transparentPixel = new ImagickPixel('transparent');
+			$extraCanvas->newImage($templateWidth, $templateHeight, $transparentPixel);
+			$transparentPixel->destroy();
+
+			if ($template['image-cover'] == '1')
+			{
+				$tmpImg = $this->resize($extraImage, $templateWidth, $templateHeight);
+				$imgX   = 0;
+				$imgY   = 0;
+				$extraCanvas->compositeImage(
+					$tmpImg,
+					Imagick::COMPOSITE_OVER,
+					$imgX,
+					$imgY);
+			}
+			else
+			{
+				$tmpImg = $this->resize($extraImage, $template['image-width'], $template['image-height']);
+				$imgX   = $template['image-x'];
+				$imgY   = $template['image-y'];
+				$extraCanvas->compositeImage(
+					$tmpImg,
+					Imagick::COMPOSITE_DEFAULT,
+					0,
+					0);
+			}
+
+			if ($template['image-z'] == 'under')
+			{
+				$extraCanvas->compositeImage(
+					$image,
+					Imagick::COMPOSITE_OVER,
+					-$imgX,
+					-$imgY);
+				$image->compositeImage(
+					$extraCanvas,
+					Imagick::COMPOSITE_COPY,
+					$imgX,
+					$imgY);
+
+			}
+			elseif ($template['image-z'] == 'over')
+			{
+				$image->compositeImage(
+					$extraCanvas,
+					Imagick::COMPOSITE_DEFAULT,
+					$imgX,
+					$imgY);
+			}
+
+			$extraCanvas->destroy();
+		}
+
+		// Composite bestfit caption over base image.
+		$image->compositeImage(
+			$theText,
+			Imagick::COMPOSITE_DEFAULT,
+			$xPos,
+			$yPos);
+
+		$theText->destroy();
+
+		// Write the image
+		$image->setImageFormat($this->getNormalizedExtension($outFile));
+
+		if (!file_put_contents($outFile, $image))
+		{
+			File::write($outFile, $image);
+		}
+
+		$image->destroy();
+	}
+
+	public function isSupported(): bool
+	{
+		// Quick escape route if the Imagick extension is not loaded / compiled in.
+		if (function_exists('extension_loaded') && extension_loaded('imagick') !== true)
+		{
+			return false;
+		}
+
+		// Make sure the Imagick and ImagickPixel classes are not disabled.
+		return class_exists('Imagick') && class_exists('ImagickPixel');
+	}
+
+	/**
+	 * Resize and crop an image
+	 *
+	 * @param   string   $src    The path to the original image.
+	 * @param   numeric  $new_w  New width, in pixels.
+	 * @param   numeric  $new_h  New height, in pixels.
+	 * @param   string   $focus  Focus of the image; default is center.
+	 *
+	 * @return  Imagick
+	 *
+	 * @throws \ImagickException
+	 *
+	 * @since   1.0.0
+	 */
+	private function resize(string $src, $new_w, $new_h, string $focus = 'center'): Imagick
+	{
+		$image = new Imagick($src);
+
+		$w = $image->getImageWidth();
+		$h = $image->getImageHeight();
+
+		$resize_w = $new_w;
+		$resize_h = $h * $new_w / $w;
+
+		if ($w > $h)
+		{
+			$resize_w = $w * $new_h / $h;
+			$resize_h = $new_h;
+
+			if ($resize_w < $new_w)
+			{
+				$resize_w = $new_w;
+				$resize_h = $h * $new_w / $w;
+			}
+		}
+
+		$image->resizeImage($resize_w, $resize_h, Imagick::FILTER_LANCZOS, 0.9);
+
+		switch ($focus)
+		{
+			case 'northwest':
+				$image->cropImage($new_w, $new_h, 0, 0);
+				break;
+
+			default:
+			case 'center':
+				$image->cropImage($new_w, $new_h, ($resize_w - $new_w) / 2, ($resize_h - $new_h) / 2);
+				break;
+
+			case 'northeast':
+				$image->cropImage($new_w, $new_h, $resize_w - $new_w, 0);
+				break;
+
+			case 'southwest':
+				$image->cropImage($new_w, $new_h, 0, $resize_h - $new_h);
+				break;
+
+			case 'southeast':
+				$image->cropImage($new_w, $new_h, $resize_w - $new_w, $resize_h - $new_h);
+				break;
+		}
+
+		return $image;
+	}
+
+}

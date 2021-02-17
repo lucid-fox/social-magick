@@ -26,28 +26,8 @@ use Joomla\CMS\Filesystem\File;
  *
  * @since       1.0.0
  */
-class ImageRendererGD implements ImageRendererInterface
+class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInterface
 {
-	private $debugText = false;
-
-	/**
-	 * Generated image quality, 0-100
-	 *
-	 * This is used verbatim for WebP and JPEG. It's converted to a compression scale of 0-9 (100 maps to 0) for PNG.
-	 * Completely ignored for GIF and other formats.
-	 *
-	 * @var   int
-	 * @since 1.0.0
-	 */
-	private $quality = 80;
-
-	/** @inheritDoc */
-	public function __construct(int $quality = 80, bool $debugText = false)
-	{
-		$this->quality = max(min($quality, 100), 0);
-		$this->debugText = $debugText;
-	}
-
 	/** @inheritDoc */
 	public function isSupported(): bool
 	{
@@ -123,7 +103,7 @@ class ImageRendererGD implements ImageRendererInterface
 		// Pre-render the text
 		[
 			$textImage, $textImageWidth, $textImageHeight,
-		] = $this->renderText($text, $template['text-color'], $template['text-align'], $this->normalizeFont($template['text-font']), $template['font-size'], $template['text-width'], $template['text-height'], 1.1);
+		] = $this->renderText($text, $template['text-color'], $template['text-align'], $this->normalizeFont($template['text-font']), $template['font-size'] * 0.75, $template['text-width'], $template['text-height'], 1.4);
 		$centerVertically   = $template['text-y-center'] == 1;
 		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
 		$centerHorizontally = $template['text-x-center'] == 1;
@@ -215,40 +195,6 @@ class ImageRendererGD implements ImageRendererInterface
 	}
 
 	/**
-	 * Get the image type by extension
-	 *
-	 * The extension case does not matter.
-	 *
-	 * @param   string  $file
-	 *
-	 * @return  string|null
-	 * @since   1.0.0
-	 */
-	private function getNormalizedExtension(string $file): ?string
-	{
-		if (empty($file))
-		{
-			return null;
-		}
-
-		$extension = pathinfo($file, PATHINFO_EXTENSION);
-
-		switch ($extension)
-		{
-			// JPEG files come in different extensions
-			case 'jpg':
-			case 'jpe':
-			case 'jpeg':
-				return 'jpg';
-				break;
-
-			default:
-				return $extension;
-				break;
-		}
-	}
-
-	/**
 	 * Resize and blend an extra image (if applicable) over/under the provided $image resource
 	 *
 	 * @param   resource     $image           GD image resource. The extra image is blended over or under it.
@@ -291,7 +237,7 @@ class ImageRendererGD implements ImageRendererInterface
 		imagefilledrectangle($extraCanvas, 0, 0, $templateWidth, $templateHeight, $color);
 		imagealphablending($image, true);
 
-		if ($template['image-cover'] === '1')
+		if ($template['image-cover'] == '1')
 		{
 			$tmpWidth  = $templateWidth;
 			$tmpHeight = $templateHeight;
@@ -312,7 +258,7 @@ class ImageRendererGD implements ImageRendererInterface
 		imagecopy($extraCanvas, $tmpImg, $imgX, $imgY, 0, 0, $tmpWidth, $tmpHeight);
 		imagedestroy($tmpImg);
 
-		if ($template['image-z'] === 'under')
+		if ($template['image-z'] == 'under')
 		{
 			// Copy $image OVER $extraCanvas
 			imagealphablending($extraCanvas, true);
@@ -717,109 +663,6 @@ class ImageRendererGD implements ImageRendererInterface
 	}
 
 	/**
-	 * Pre-processes the text before rendering.
-	 *
-	 * This method removes Emoji and Dingbats, collapses double spaces into single spaces and converts all whitespace
-	 * into spaces. Finally, it converts non-ASCII characters into HTML entities so that GD can render them correctly.
-	 *
-	 * @param   string  $text
-	 *
-	 * @return  string
-	 *
-	 * @since   1.0.0
-	 */
-	private function preProcessText(string $text)
-	{
-		$text = $this->stripEmoji($text);
-		$text = preg_replace('/\s/', ' ', $text);
-		$text = preg_replace('/\s{2,}/', ' ', $text);
-
-		return htmlentities($text);
-	}
-
-	/**
-	 * Strip Emoji and Dingbats off a string
-	 *
-	 * @param   string  $string  The string to process
-	 *
-	 * @return  string  The cleaned up string
-	 *
-	 * @since   1.0.0
-	 */
-	private function stripEmoji(string $string): string
-	{
-
-		// Match Emoticons
-		$regex_emoticons = '/[\x{1F600}-\x{1F64F}]/u';
-		$clear_string    = preg_replace($regex_emoticons, '', $string);
-
-		// Match Miscellaneous Symbols and Pictographs
-		$regex_symbols = '/[\x{1F300}-\x{1F5FF}]/u';
-		$clear_string  = preg_replace($regex_symbols, '', $clear_string);
-
-		// Match Transport And Map Symbols
-		$regex_transport = '/[\x{1F680}-\x{1F6FF}]/u';
-		$clear_string    = preg_replace($regex_transport, '', $clear_string);
-
-		// Match Miscellaneous Symbols
-		$regex_misc   = '/[\x{2600}-\x{26FF}]/u';
-		$clear_string = preg_replace($regex_misc, '', $clear_string);
-
-		// Match Dingbats
-		$regex_dingbats = '/[\x{2700}-\x{27BF}]/u';
-		$clear_string   = preg_replace($regex_dingbats, '', $clear_string);
-
-		return $clear_string;
-	}
-
-	/**
-	 * Convert a hexadecimal color string to an array of Red, Green, Blue and Alpha values.
-	 *
-	 * @param   string  $hex
-	 *
-	 * @return  int[]  The [R,G,B,A] array of the color.
-	 *
-	 * @since   1.0.0
-	 */
-	private function hexToRGBA(string $hex): array
-	{
-		// Uppercase the hex color string
-		$hex = strtoupper($hex);
-
-		// Remove the hash sign in front
-		if (substr($hex, 0, 1) === '#')
-		{
-			$hex = substr($hex, 1);
-		}
-
-		// Convert ABC to AABBCC
-		if (strlen($hex) === 3)
-		{
-			$bits = str_split($hex, 1);
-			$hex  = $bits[0] . $bits[0] . $bits[1] . $bits[1] . $bits[2] . $bits[2];
-		}
-
-		// Make sure the hex color string is exactly 8 characters (format: RRGGBBAA
-		if (strlen($hex) < 8)
-		{
-			$hex = str_pad(str_pad($hex, 6, '0'), 8, 'F');
-		}
-
-		$hex = substr($hex, 0, 8);
-
-		$hexBytes = str_split($hex, 2);
-
-		$ret = [0, 0, 0, 255];
-
-		foreach ($hexBytes as $index => $hexByte)
-		{
-			$ret[$index] = hexdec($hexByte);
-		}
-
-		return $ret;
-	}
-
-	/**
 	 * Returns the width and height of a line of text
 	 *
 	 * @param   string  $text  The text to render
@@ -1007,15 +850,5 @@ class ImageRendererGD implements ImageRendererInterface
 		return array_filter($lines, function (array $line) use ($maxHeight): bool {
 			return ($line['y'] + $line['height']) <= $maxHeight;
 		});
-	}
-
-	private function normalizeFont(string $font): string
-	{
-		if (!@file_exists($font))
-		{
-			$font = JPATH_PLUGINS . '/system/socialmagick/fonts/' . $font;
-		}
-
-		return $font;
 	}
 }
