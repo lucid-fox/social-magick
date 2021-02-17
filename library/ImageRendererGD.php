@@ -367,6 +367,11 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 */
 	private function resizeImage(&$image, int $oldWidth, int $oldHeight, int $newWidth, int $newHeight, string $focus = 'center')
 	{
+		if (($oldWidth === $newWidth) && ($oldHeight === $newHeight))
+		{
+			return $image;
+		}
+
 		// Get the resize dimensions
 		$resizeWidth  = $newWidth;
 		$resizeHeight = $oldHeight * $newWidth / $oldWidth;
@@ -383,17 +388,11 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			}
 		}
 
-		if (($oldWidth == $resizeWidth) && ($oldHeight == $resizeHeight))
-		{
-			return $image;
-		}
-
 		// Resize the image
 		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
 		imagealphablending($newImage, false);
 		$transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
 		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
-		imagealphablending($newImage, true);
 
 		imagecopyresampled($newImage, $image, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $oldWidth, $oldHeight);
 		imagedestroy($image);
@@ -405,7 +404,6 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		imagealphablending($newImage, false);
 		$transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
 		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
-		imagealphablending($newImage, true);
 
 		switch ($focus)
 		{
@@ -415,19 +413,19 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 
 			default:
 			case 'center':
-				imagecopyresampled($newImage, $image, 0, 0, ($resizeWidth - $newWidth) / 2, ($resizeHeight - $newHeight) / 2, $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, abs($resizeWidth - $newWidth) / 2, abs($resizeHeight - $newHeight) / 2, $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 
 			case 'northeast':
-				imagecopyresampled($newImage, $image, 0, 0, $resizeWidth - $newWidth, 0, $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, abs($resizeWidth - $newWidth), 0, $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 
 			case 'southwest':
-				imagecopyresampled($newImage, $image, 0, 0, 0, $resizeHeight - $newHeight, $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, 0, abs($resizeHeight - $newHeight), $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 
 			case 'southeast':
-				imagecopyresampled($newImage, $image, 0, 0, $resizeWidth - $newWidth, $resizeHeight - $newHeight, $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, abs($resizeWidth - $newWidth), abs($resizeHeight - $newHeight), $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 		}
 
