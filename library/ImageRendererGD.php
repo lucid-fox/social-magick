@@ -103,7 +103,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		// Pre-render the text
 		[
 			$textImage, $textImageWidth, $textImageHeight,
-		] = $this->renderText($text, $template['text-color'], $template['text-align'], $this->normalizeFont($template['text-font']), $template['font-size'] * 0.75, $template['text-width'], $template['text-height'], 1.4);
+		] = $this->renderText($text, $template['text-color'], $template['text-align'], $this->normalizeFont($template['text-font']), $template['font-size'] * 0.755, $template['text-width'], $template['text-height'], 1.35);
 		$centerVertically   = $template['text-y-center'] == 1;
 		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
 		$centerHorizontally = $template['text-x-center'] == 1;
@@ -383,21 +383,22 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			}
 		}
 
-		if (($oldWidth != $resizeWidth) && ($oldHeight != $resizeHeight))
+		if (($oldWidth == $resizeWidth) && ($oldHeight == $resizeHeight))
 		{
-			// Resize the image
-			$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
-			imagealphablending($newImage, false);
-			$transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
-			imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
-			imagealphablending($newImage, true);
-
-			imagecopyresampled($newImage, $image, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $oldWidth, $oldHeight);
-			imagedestroy($image);
-			$image = $newImage;
-			unset($newImage);
+			return $image;
 		}
 
+		// Resize the image
+		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
+		imagealphablending($newImage, false);
+		$transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
+		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
+		imagealphablending($newImage, true);
+
+		imagecopyresampled($newImage, $image, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $oldWidth, $oldHeight);
+		imagedestroy($image);
+		$image = $newImage;
+		unset($newImage);
 
 		// Crop the image
 		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
@@ -470,13 +471,13 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 * @param   int     $fontSize     The font size, in points.
 	 * @param   int     $maxWidth     Maximum text render width, in pixels.
 	 * @param   int     $maxHeight    Maximum text render height, in pixels.
-	 * @param   float   $lineSpacing  Line spacing factor. 1.1 is recommended.
+	 * @param   float   $lineSpacing  Line spacing factor. 1.35 is what Imagick uses by default as far as I can tell.
 	 *
 	 * @return  array  [$image, $textWidth, $textHeight]  The width and height include the 50px margin on all sides
 	 *
 	 * @since   1.0.0
 	 */
-	private function renderText(string $text, string $color, string $alignment, string $font, int $fontSize, int $maxWidth, int $maxHeight, float $lineSpacing = 1.1)
+	private function renderText(string $text, string $color, string $alignment, string $font, int $fontSize, int $maxWidth, int $maxHeight, float $lineSpacing = 1.35)
 	{
 		// Pre-process text
 		$text = $this->preProcessText($text);
