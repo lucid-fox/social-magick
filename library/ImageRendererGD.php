@@ -17,11 +17,19 @@
 
 namespace LucidFox\SocialMagick;
 
+defined('_JEXEC') || die();
 
 use Joomla\CMS\Filesystem\File;
 
-class GDRenderer
+/**
+ * An image renderer using the GD library
+ *
+ * @since       1.0.0
+ */
+class ImageRendererGD implements ImageRendererInterface
 {
+	private $debugText = false;
+
 	/**
 	 * Generated image quality, 0-100
 	 *
@@ -33,7 +41,46 @@ class GDRenderer
 	 */
 	private $quality = 80;
 
-	public function makeOGImage(string $text, array $template, string $outFile, ?string $extraImage)
+	/** @inheritDoc */
+	public function __construct(int $quality = 80, bool $debugText = false)
+	{
+		$this->quality = max(min($quality, 100), 0);
+		$this->debugText = $debugText;
+	}
+
+	/** @inheritDoc */
+	public function isSupported(): bool
+	{
+		// Quick escape route if the GD extension is not loaded / compiled in.
+		if (function_exists('extension_loaded') && extension_loaded('gd') !== true)
+		{
+			return false;
+		}
+
+		$functions = [
+			'imagecreatetruecolor',
+			'imagealphablending',
+			'imagecolorallocatealpha',
+			'imagefilledrectangle',
+			'imagerectangle',
+			'imagecopy',
+			'imagedestroy',
+			'imagesavealpha',
+			'imagepng',
+			'imagejpeg',
+			'getimagesize',
+			'imagecreatefromjpeg',
+			'imagecreatefrompng',
+			'imagecopyresampled',
+		];
+
+		return array_reduce($functions, function($carry, $function) {
+			return $carry && function_exists($function);
+		}, true);
+	}
+
+	/** @inheritDoc */
+	public function makeImage(string $text, array $template, string $outFile, ?string $extraImage): void
 	{
 		// Get the template's dimensions
 		$templateWidth  = $template['template-w'] ?? 1200;
@@ -76,7 +123,7 @@ class GDRenderer
 		// Pre-render the text
 		[
 			$textImage, $textImageWidth, $textImageHeight,
-		] = $this->renderText($text, $template['text-color'], $template['text-align'], $template['text-font'], $template['font-size'], $template['text-width'], $template['text-height'], 1.1);
+		] = $this->renderText($text, $template['text-color'], $template['text-align'], $this->normalizeFont($template['text-font']), $template['font-size'], $template['text-width'], $template['text-height'], 1.1);
 		$centerVertically   = $template['text-y-center'] == 1;
 		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
 		$centerHorizontally = $template['text-x-center'] == 1;
@@ -99,7 +146,7 @@ class GDRenderer
 		imagedestroy($textImage);
 
 		// Write out the image file...
-		$imageType  = $this->getNormalizedExtension($outFile);
+		$imageType = $this->getNormalizedExtension($outFile);
 		imagesavealpha($image, true);
 		@ob_start();
 
@@ -402,7 +449,7 @@ class GDRenderer
 		$image = $newImage;
 		unset($newImage);
 
-		// TODO Crop the image
+		// Crop the image
 		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
 		imagealphablending($newImage, false);
 		$transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
@@ -520,7 +567,13 @@ class GDRenderer
 					array_pop($words);
 					$lastLine['text'] = implode(' ', $words) . '…';
 				}
+
+				$lastLine['text'] = trim($lastLine['text']);
+				$testDimensions   = $this->lineSize($lastLine['text'], $fontSize, $font);
 			}
+
+			$lastLine['width']  = $testDimensions[0];
+			$lastLine['height'] = $testDimensions[1];
 
 			$lines[] = $lastLine;
 		}
@@ -537,10 +590,29 @@ class GDRenderer
 		}, 0);
 
 		// Create a transparent image with the text dimensions
-		$image = imagecreatetruecolor($textWidth + 100, $textHeight + 100);
+		$image = imagecreatetruecolor($maxWidth + 100, $maxHeight + 100);
 		imagealphablending($image, false);
-		$transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
-		imagefilledrectangle($image, 0, 0, $textWidth + 100, $textHeight + 100, $transparent);
+
+		if (!$this->debugText)
+		{
+			$transparent = imagecolorallocatealpha($image, 0, 0, 0, 127);
+			imagefilledrectangle($image, 0, 0, $maxWidth + 100, $maxHeight + 100, $transparent);
+		}
+		else
+		{
+			$transparent = imagecolorallocatealpha($image, 255, 0, 0, 90);
+			imagefilledrectangle($image, 0, 0, 50, $maxHeight + 100, $transparent);
+			imagefilledrectangle($image, $maxWidth + 50, 0, $maxWidth + 100, $maxHeight + 100, $transparent);
+			imagefilledrectangle($image, 50, 0, $maxWidth + 50, 50, $transparent);
+			imagefilledrectangle($image, 50, $maxHeight + 50, $maxWidth + 50, $maxHeight + 100, $transparent);
+
+			$yellow = imagecolorallocatealpha($image, 255, 255, 0, 80);
+			imagefilledrectangle($image, 50, 50, $maxWidth + 50, $maxHeight + 50, $yellow);
+
+			$purple = imagecolorallocate($image, 255, 0, 255);
+			imagerectangle($image, 0, 0, $maxWidth + 99, $maxHeight + 99, $purple);
+		}
+
 		imagealphablending($image, true);
 
 		// Render the text on the transparent image
@@ -550,12 +622,23 @@ class GDRenderer
 		$boundingBox = imagettfbbox($fontSize, 0, $font, $lines[0]['text']);
 		$yOffset     = -$boundingBox[7] + 1;
 
+		// At this point the text would be anchored to the top of the text box. We want it centred in the box.
+		$centerYOffset = (int) ceil(($maxHeight - $textHeight) / 2.0);
+
 		foreach ($lines as $line)
 		{
-			imagettftext($image, $fontSize, 0, 50 + $line['x'], 50 + $line['y'] + $yOffset, $colorResource, $font, $line['text']);
+			$x1 = 50 + $line['x'];
+			$y1 = 50 + $line['y'] + $centerYOffset;
+
+			imagettftext($image, $fontSize, 0, $x1, $y1 + $yOffset, $colorResource, $font, $line['text']);
+
+			if ($this->debugText)
+			{
+				imagerectangle($image, $x1, $y1, $x1 + $line['width'], $y1 + $line['height'], $purple);
+			}
 		}
 
-		return [$image, $textWidth, $textHeight];
+		return [$image, $maxWidth, $maxHeight];
 	}
 
 	/**
@@ -898,7 +981,7 @@ class GDRenderer
 			return max($carry, $line['height']);
 		}, 0);
 
-		$lineHeight = $maxHeight * $lineSpacing;
+		$lineHeight = (int) ceil($maxHeight * $lineSpacing);
 		$i          = -1;
 
 		return array_map(function (array $line) use ($lineHeight, &$i) {
@@ -924,5 +1007,15 @@ class GDRenderer
 		return array_filter($lines, function (array $line) use ($maxHeight): bool {
 			return ($line['y'] + $line['height']) <= $maxHeight;
 		});
+	}
+
+	private function normalizeFont(string $font): string
+	{
+		if (!@file_exists($font))
+		{
+			$font = JPATH_PLUGINS . '/system/socialmagick/fonts/' . $font;
+		}
+
+		return $font;
 	}
 }
