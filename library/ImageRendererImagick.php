@@ -244,7 +244,20 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 		$theText->destroy();
 
 		// Write the image
-		$image->setImageFormat($this->getNormalizedExtension($outFile));
+		$imageFormat = $this->getNormalizedExtension($outFile);
+		$image->setImageFormat($imageFormat);
+
+		switch ($imageFormat)
+		{
+			case 'jpg':
+				$image->setCompressionQuality($this->quality);
+				$image->setImageCompression(Imagick::COMPRESSION_JPEG);
+				break;
+
+			case 'png':
+				$image->setImageCompressionQuality(100 - $this->quality);
+				break;
+		}
 
 		if (!file_put_contents($outFile, $image))
 		{

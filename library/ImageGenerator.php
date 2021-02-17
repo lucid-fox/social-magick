@@ -12,12 +12,9 @@ namespace LucidFox\SocialMagick;
 defined('_JEXEC') || die();
 
 use Exception;
-use Imagick;
-use ImagickPixel;
 use Joomla\CMS\Application\ApplicationHelper;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Uri\Uri;
@@ -77,7 +74,31 @@ final class ImageGenerator
 		$this->outputFolder = $pluginParams->get('output_folder', 'images/og-generated') ?: 'images/og-generated';
 		$this->parseImageTemplates($pluginParams->get('og-templates', null));
 
-		$this->renderer = new ImageRendererImagick(80, false);
+		$rendererType = $pluginParams->get('library', 'auto');
+		$textDebug    = $pluginParams->get('textdebug', '0') == 1;
+		$quality      = 100 - $pluginParams->get('quality', '95');
+
+		switch ($rendererType)
+		{
+			case 'imagick':
+				$this->renderer = new ImageRendererImagick($quality, $textDebug);
+				break;
+
+			case 'gd':
+				$this->renderer = new ImageRendererGD($quality, $textDebug);
+				break;
+
+			case 'auto':
+			default:
+				$this->renderer = new ImageRendererImagick($quality, $textDebug);
+
+				if (!$this->renderer->isSupported())
+				{
+					$this->renderer = new ImageRendererGD($quality, $textDebug);
+				}
+
+				break;
+		}
 	}
 
 	/**

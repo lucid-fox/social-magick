@@ -42,18 +42,6 @@
         <fields name="params" addfieldpath="/plugins/system/socialmagick/fields">
             <fieldset name="basic">
                 <field
-                        name="devmode"
-                        type="fancyradio"
-                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEVMODE_LABEL"
-                        class="btn-group btn-group-yesno"
-                        default="0"
-                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEVMODE_DESC"
-                >
-                    <option value="0">JNO</option>
-                    <option value="1">JYES</option>
-                </field>
-
-                <field
                         name="output_folder"
                         type="text"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OUTPUT_FOLDER_LABEL"
@@ -319,6 +307,53 @@
                                 default="0"
                         />
                     </form>
+                </field>
+
+                <field
+                        name="quality"
+                        type="range"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_QUALITY_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_QUALITY_DESC"
+                        min="1"
+                        max="99"
+                        default="95"
+                        step="1"
+                />
+
+                <field
+                        name="devmode"
+                        type="fancyradio"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEVMODE_LABEL"
+                        class="btn-group btn-group-yesno"
+                        default="0"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEVMODE_DESC"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
+                <field
+                        name="textdebug"
+                        type="fancyradio"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXTDEBUG_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXTDEBUG_DESC"
+                        class="btn-group btn-group-yesno"
+                        default="0"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
+                <field
+                        name="library"
+                        type="list"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_LIBRARY_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_LIBRARY_DESC"
+                        default="auto"
+                >
+                    <option value="auto">PLG_SYSTEM_SOCIALMAGICK_CONFIG_LIBRARY_AUTO</option>
+                    <option value="imagick">PLG_SYSTEM_SOCIALMAGICK_CONFIG_LIBRARY_IMAGICK</option>
+                    <option value="gd">PLG_SYSTEM_SOCIALMAGICK_CONFIG_LIBRARY_GD</option>
                 </field>
             </fieldset>
         </fields>
