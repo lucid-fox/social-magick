@@ -9,6 +9,7 @@
 
 defined('_JEXEC') || die;
 
+use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Installer\Adapter\PluginAdapter;
@@ -29,6 +30,101 @@ class plgSystemSocialmagickInstallerScript
 		],
 	];
 
+	protected $defaultSettingsJson = <<< JSON
+{
+	"og-templates": {
+		"og-templates0": {
+			"template-name": "Overlay",
+			"base-image": "plugins\\/system\\/socialmagick\\/images\\/overlay.png",
+			"template-w": 1200,
+			"template-h": 640,
+			"base-color": "#000000",
+			"base-color-alpha": "100",
+			"text-font": "OpenSans-Bold.ttf",
+			"font-size": 32,
+			"text-color": "#ffffff",
+			"text-height": 270,
+			"text-width": 500,
+			"text-align": "center",
+			"text-y-center": "1",
+			"text-y-adjust": -40,
+			"text-y-absolute": "",
+			"text-x-center": "1",
+			"text-x-adjust": 0,
+			"text-x-absolute": "",
+			"use-article-image": "1",
+			"image-z": "under",
+			"image-cover": "1",
+			"image-width": 1200,
+			"image-height": 630,
+			"image-x": 0,
+			"image-y": 0
+		},
+		"og-templates1": {
+			"template-name": "Solid",
+			"base-image": "plugins\\/system\\/socialmagick\\/images\\/solid.png",
+			"template-w": 1200,
+			"template-h": 640,
+			"base-color": "#000000",
+			"base-color-alpha": "100",
+			"text-font": "OpenSans-Bold.ttf",
+			"font-size": 32,
+			"text-color": "#ffffff",
+			"text-height": 280,
+			"text-width": 600,
+			"text-align": "center",
+			"text-y-center": "1",
+			"text-y-adjust": 0,
+			"text-y-absolute": "",
+			"text-x-center": "1",
+			"text-x-adjust": 0,
+			"text-x-absolute": "",
+			"use-article-image": "0",
+			"image-z": "under",
+			"image-cover": "1",
+			"image-width": 1200,
+			"image-height": 630,
+			"image-x": 0,
+			"image-y": 0
+		},
+		"og-templates2": {
+			"template-name": "Cutout",
+			"base-image": "plugins\\/system\\/socialmagick\\/images\\/cutout.png",
+			"template-w": 1200,
+			"template-h": 640,
+			"base-color": "#000000",
+			"base-color-alpha": "100",
+			"text-font": "OpenSans-Bold.ttf",
+			"font-size": 32,
+			"text-color": "#ffffff",
+			"text-height": 415,
+			"text-width": 430,
+			"text-align": "left",
+			"text-y-center": "1",
+			"text-y-adjust": -20,
+			"text-y-absolute": "",
+			"text-x-center": "0",
+			"text-x-adjust": 165,
+			"text-x-absolute": 165,
+			"use-article-image": "1",
+			"image-z": "under",
+			"image-cover": "0",
+			"image-width": 420,
+			"image-height": 420,
+			"image-x": 660,
+			"image-y": 90
+		}
+	},
+	"output_folder": "images\\/og-generated",
+	"quality": "95",
+	"devmode": "0",
+	"textdebug": "0",
+	"library": "auto"
+}
+JSON;
+
+	protected $newInstallation = false;
+
 	/**
 	 * Runs before Joomla has the chance to install the plugin
 	 *
@@ -36,7 +132,7 @@ class plgSystemSocialmagickInstallerScript
 	 * @param   PluginAdapter  $adapter
 	 *
 	 * @return  bool
-	 * @since   1.0.0.b1
+	 * @since   1.0.0
 	 */
 	public function preflight($route, $adapter)
 	{
@@ -61,6 +157,9 @@ class plgSystemSocialmagickInstallerScript
 			return false;
 		}
 
+		// Clear op-code caches to prevent any cached code issues
+		$this->clearOpcodeCaches();
+
 		return true;
 	}
 
@@ -74,12 +173,50 @@ class plgSystemSocialmagickInstallerScript
 	 *
 	 * @return  void
 	 * @throws  Exception
-	 * @since   1.0.0.b1
+	 * @since   1.0.0
 	 */
 	public function postflight($type, $adapter)
 	{
-		// Remove obsolete files and folders
-		$this->removeFilesAndFolders($this->removeFiles);
+		// Is this a breand new installation?
+		$this->newInstallation = in_array($type, ['install', 'discover', 'discover_install', 'discover_update']);
+
+		// Remove obsolete files and folders on update
+		if (!$this->newInstallation)
+		{
+			$this->removeFilesAndFolders($this->removeFiles);
+		}
+
+		// Apply default plugin settings on brand new installation
+		if ($this->newInstallation)
+		{
+			$this->applyDefaultSettings();
+		}
+
+		// Clear the opcode caches again - in case someone accessed the extension while the files were being upgraded.
+		$this->clearOpcodeCaches();
+	}
+
+	/**
+	 * Clear PHP opcode caches
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
+	protected function clearOpcodeCaches()
+	{
+		// Always reset the OPcache if it's enabled. Otherwise there's a good chance the server will not know we are
+		// replacing .php scripts. This is a major concern since PHP 5.5 included and enabled OPcache by default.
+		if (function_exists('opcache_reset'))
+		{
+			/** @noinspection PhpComposerExtensionStubsInspection */
+			opcache_reset();
+		}
+		// Also do that for APC cache
+		elseif (function_exists('apc_clear_cache'))
+		{
+			/** @noinspection PhpComposerExtensionStubsInspection */
+			@apc_clear_cache();
+		}
 	}
 
 	/**
@@ -88,7 +225,7 @@ class plgSystemSocialmagickInstallerScript
 	 * @param   array  $removeList  The files and directories to remove
 	 *
 	 * @return  void
-	 * @since   1.0.0.b1
+	 * @since   1.0.0
 	 */
 	private function removeFilesAndFolders($removeList)
 	{
@@ -122,6 +259,32 @@ class plgSystemSocialmagickInstallerScript
 
 				Folder::delete($f);
 			}
+		}
+	}
+
+	/**
+	 * Apply the default plugin settings on new installation
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
+	private function applyDefaultSettings()
+	{
+		$db       = Factory::getDbo();
+		$query    = $db->getQuery(true)
+			->update($db->qn('#__extensions'))
+			->set($db->qn('params') . ' = ' . $db->q($this->defaultSettingsJson))
+			->where($db->qn('type') . ' = ' . $db->q('plugin'))
+			->where($db->qn('element') . ' = ' . $db->q('socialmagick'))
+			->where($db->qn('folder') . ' = ' . $db->q('system'));
+
+		try
+		{
+			$db->setQuery($query)->execute();
+		}
+		catch (Exception $e)
+		{
+			// No problem if this fails
 		}
 	}
 }
