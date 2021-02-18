@@ -1,5 +1,5 @@
 <?php
-/*
+/**
  * Social Magick – Automatically generate Open Graph images on your site
  *
  * @package   socialmagick

@@ -1,5 +1,13 @@
 <?php
 /**
+ * Social Magick – Automatically generate Open Graph images on your site
+ *
+ * @package   socialmagick
+ * @copyright Copyright 2021-2021 Lucid Fox
+ * @license   GNU GPL v3 or later
+ */
+
+/**
  * @package   buildfiles
  * @copyright Copyright (c)2010-2021 Nicholas K. Dionysopoulos / Akeeba Ltd
  * @license   GNU General Public License version 3, or later
