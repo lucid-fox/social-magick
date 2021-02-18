@@ -46,4 +46,15 @@ interface ImageRendererInterface
 	 * @since   1.0.0
 	 */
 	public function isSupported(): bool;
+
+	/**
+	 * Returns an MD5 key based on the renderer's options.
+	 *
+	 * This is based on the renderer class name, and the text debug and quality settings.
+	 *
+	 * @return  string
+	 *
+	 * @since   1.0.0
+	 */
+	public function getOptionsKey(): string;
 }

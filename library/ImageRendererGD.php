@@ -137,7 +137,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			case 'png':
 				if (function_exists('imagepng'))
 				{
-					$ret = @imagepng($image, null, max((int) ceil((100 - $this->quality) / 10), 9));
+					$ret = @imagepng($image, null, min((int) ceil((100 - $this->quality) / 10), 9));
 				}
 
 				break;

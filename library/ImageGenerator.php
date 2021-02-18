@@ -231,6 +231,7 @@ final class ImageGenerator
 			'image-x'           => 0,
 			'image-y'           => 0,
 		], $this->templates[$templateName] ?? []);
+
 		$templateWidth  = $template['template-w'] ?? 1200;
 		$templateHeight = $template['template-h'] ?? 630;
 
@@ -240,7 +241,7 @@ final class ImageGenerator
 		$filename         = Path::clean(sprintf("%s/%s/%s.png",
 			JPATH_ROOT,
 			$outputFolder,
-			md5($text . $templateName . serialize($template))
+			md5($text . $templateName . serialize($template) . ($extraImage ?? '') . $this->renderer->getOptionsKey())
 		));
 		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)), '/');
 		$imageUrl         = Uri::base() . $realRelativePath;

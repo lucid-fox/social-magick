@@ -10,13 +10,13 @@
 defined('_JEXEC') || die();
 
 use Joomla\CMS\Application\CMSApplication;
-use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\Menu\MenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Table\Table;
 use LucidFox\SocialMagick\ImageGenerator;
+use LucidFox\SocialMagick\ParametersRetriever;
 
 /**
  * System plugin to automatically generate Open Graph images
@@ -29,6 +29,8 @@ use LucidFox\SocialMagick\ImageGenerator;
  */
 class plgSystemSocialmagick extends CMSPlugin
 {
+	public $app;
+
 	/**
 	 * The ImageGenerator instance used throughout the plugin
 	 *
@@ -38,28 +40,20 @@ class plgSystemSocialmagick extends CMSPlugin
 	private $helper = null;
 
 	/**
-	 * The title of the com_content article being rendered, if applicable
+	 * The com_content article ID being rendered, if applicable.
 	 *
-	 * @var   string
+	 * @var   int
 	 * @since 1.0.0
 	 */
-	private $articleTitle = '';
+	private $article = '';
 
 	/**
-	 * The images of the com_content article being rendered, if applicable
+	 * The com_content category ID being rendered, if applicable.
 	 *
-	 * @var   array
+	 * @var   int
 	 * @since 1.0.0
 	 */
-	private $articleImages = [];
-
-	/**
-	 * The Joomla! custom fields of the com_content article being rendered, if applicable
-	 *
-	 * @var   array
-	 * @since 1.0.0
-	 */
-	private $articleFields = [];
+	private $category = '';
 
 	/**
 	 * plgSystemSocialmagick constructor.
@@ -242,22 +236,12 @@ class plgSystemSocialmagick extends CMSPlugin
 			return;
 		}
 
-		// Make sure we have a valid application and that it's the frontend of the site
-		try
-		{
-			$app = Factory::getApplication();
-		}
-		catch (Exception $e)
+		if (!is_object($this->app) || !($this->app instanceof CMSApplication))
 		{
 			return;
 		}
 
-		if (!($app instanceof CMSApplication))
-		{
-			return;
-		}
-
-		if (!method_exists($app, 'isClient') || !$app->isClient('site'))
+		if (!method_exists($this->app, 'isClient') || !$this->app->isClient('site'))
 		{
 			return;
 		}
@@ -279,23 +263,79 @@ class plgSystemSocialmagick extends CMSPlugin
 			return;
 		}
 
+		$params = ParametersRetriever::getMenuParameters($currentItem->id, $currentItem);
+
+		if (($currentItem->query['option'] ?? '') == 'com_content')
+		{
+			$task        = $currentItem->query['task'] ?? '';
+			$defaultView = '';
+
+			if (strpos($task, '.') !== false)
+			{
+				[$defaultView, $task] = explode('.', $task);
+			}
+
+			$view = ($currentItem->query['view'] ?? '') ?: $defaultView;
+
+			switch ($view)
+			{
+				case 'categories':
+				case 'category':
+					// Apply category overrides if applicable
+					$category = $this->category ?? $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
+					if ($category)
+					{
+						$catParams = ParametersRetriever::getCategoryParameters($category);
+
+						if ($catParams['override'] == 1)
+						{
+							$params = $catParams;
+						}
+					}
+
+					$this->article  = null;
+					$this->category = $category;
+					break;
+
+				case 'archive':
+				case 'article':
+				case 'featured':
+					// Apply article overrides if applicable
+					$article = $this->article ?? $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
+
+					if ($article)
+					{
+						$articleParams = ParametersRetriever::getArticleParameters($article);
+
+						if ($articleParams['override'] == 1)
+						{
+							$params = $articleParams;
+						}
+					}
+
+					$this->article  = $article;
+					$this->category = null;
+
+					break;
+			}
+		}
+
 		// Am I supposed to generate an Open Graph image?
-		$params       = $currentItem->getParams();
-		$willGenerate = $params->get('socialmagick.generate_images', 0) == 1;
+		$willGenerate = $params['generate_images'] == 1;
 
 		if (!$willGenerate)
 		{
 			return;
 		}
 
-		// Get my options
-		$template    = $params->get('socialmagick.template', '');
-		$customText  = $params->get('socialmagick.custom_text', '');
-		$useArticle  = $params->get('socialmagick.use_article', 1) == 1;
-		$useTitle    = $params->get('socialmagick.use_title', 1) == 1;
-		$imageSource = $params->get('socialmagick.image_source', 'none');
-		$imageField  = $params->get('socialmagick.image_field', '');
-		$overrideOG  = $params->get('socialmagick.override_og', 0) == 1;
+		// Get the applicable options
+		$template    = $params['template'];
+		$customText  = $params['custom_text'];
+		$useArticle  = $params['use_article'] == 1;
+		$useTitle    = $params['use_title'] == 1;
+		$imageSource = $params['image_source'];
+		$imageField  = $params['image_field'];
+		$overrideOG  = $params['override_og'] == 1;
 
 		// Get the text to render.
 		$text = $this->getText($currentItem, $customText, $useArticle, $useTitle);
@@ -347,17 +387,31 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	public function onContentBeforeDisplay(?string $context, &$row, &$params, ?int $page = 0): string
 	{
-		if (!in_array($context, ['com_content.article', 'com_content.category']))
+		if (!in_array($context, ['com_content.article', 'com_content.category', 'com_content.categories']))
 		{
 			return '';
 		}
 
-		// Save the article title, images and fields for later use
-		$this->articleTitle  = $row->title;
-		$this->articleImages = json_decode($row->images, true) ?? $row->images;
-		$this->articleImages = is_array($this->articleImages) ? $this->articleImages : [];
-		$this->articleFields = $row->jcfields;
-		$this->articleFields = is_array($this->articleFields) ? $this->articleFields : [];
+		switch ($context)
+		{
+			case 'com_content.article':
+			case 'com_content.category':
+				$this->article = $row;
+				break;
+
+			case 'com_content.categories':
+				$this->category = $row;
+		}
+
+		// Save the article/category, images and fields for later use
+		if ($context == 'com_content.categories')
+		{
+			$this->category = $row->id;
+		}
+		else
+		{
+			$this->article = $row->id;
+		}
 
 		return '';
 	}
@@ -379,9 +433,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		// First try using the magic socialMagickText app object variable.
 		try
 		{
-			/** @var SiteApplication $app */
-			$app     = Factory::getApplication();
-			$appText = trim(@$app->socialMagickText ?? '');
+			$appText = trim(@$this->app->socialMagickText ?? '');
 		}
 		catch (Exception $e)
 		{
@@ -404,18 +456,29 @@ class plgSystemSocialmagick extends CMSPlugin
 		// The fallback to the core content article title, if one exists and this feature is enabled
 		if ($useArticle)
 		{
-			$articleText = trim($this->articleTitle);
+			$title = '';
 
-			if (!empty($articleText))
+			if ($this->article)
 			{
-				return $articleText;
+				$article = ParametersRetriever::getArticleById($this->article);
+				$title = empty($article) ? '' : ($article->title ?? '');
+			}
+			elseif ($this->category)
+			{
+				$category = ParametersRetriever::getCategoryById($this->category);
+				$title = empty($category) ? '' : ($category->title ?? '');
+			}
+
+			if (!empty($title))
+			{
+				return $title;
 			}
 		}
 
 		// Finally fall back to the page title, if this feature is enabled
 		if ($useTitle)
 		{
-			return $currentItem->getParams()->get('page_title', $app->getDocument()->getTitle());
+			return $currentItem->getParams()->get('page_title', $this->app->getDocument()->getTitle());
 		}
 
 		// I have found nothing. Return blank.
@@ -439,6 +502,37 @@ class plgSystemSocialmagick extends CMSPlugin
 			return null;
 		}
 
+		$contentObject = null;
+		$jcFields      = [];
+		$articleImages = [];
+
+		if ($this->article)
+		{
+			$contentObject = ParametersRetriever::getArticleById($this->article);
+		}
+		elseif ($this->category)
+		{
+			$contentObject = ParametersRetriever::getCategoryById($this->category);
+		}
+
+		if (!empty($contentObject))
+		{
+			// Decode custom fields
+			$jcFields = $contentObject->jcfields ?? [];
+
+			if (is_string($jcFields))
+			{
+				$jcFields = @json_decode($jcFields, true);
+			}
+
+			$jcFields = is_array($jcFields) ? $jcFields : [];
+
+			// Decode images
+			$articleImages = $contentObject->images ?? ($contentObject->params ?? []);
+			$articleImages = is_string($articleImages) ? @json_decode($articleImages, true) : $articleImages;
+			$articleImages = is_array($articleImages) ? $articleImages : [];
+		}
+
 		switch ($imageSource)
 		{
 			default:
@@ -448,21 +542,33 @@ class plgSystemSocialmagick extends CMSPlugin
 
 			case 'intro':
 			case 'fulltext':
-				if (empty($this->articleImages))
+				if (empty($articleImages))
 				{
 					return null;
 				}
 
-				return ($this->articleImages['image_' . $imageSource]) ?: null;
+				if (isset($articleImages['image_' . $imageSource]))
+				{
+					return ($articleImages['image_' . $imageSource]) ?: null;
+				}
+				elseif (isset($articleImages['image']))
+				{
+					return ($articleImages['image']) ?: null;
+				}
+				else
+				{
+					return null;
+				}
+
 				break;
 
 			case 'custom':
-				if (empty($this->articleFields) || empty($imageField))
+				if (empty($jcFields) || empty($imageField))
 				{
 					return null;
 				}
 
-				foreach ($this->articleFields as $fieldInfo)
+				foreach ($jcFields as $fieldInfo)
 				{
 					if ($fieldInfo->name != $imageField)
 					{

@@ -39,6 +39,17 @@ abstract class ImageRendererAbstract implements ImageRendererInterface
 		$this->debugText = $debugText;
 	}
 
+	/** @inheritDoc */
+	public function getOptionsKey(): string
+	{
+		return md5(
+			get_class($this) . '_' .
+			($this->debugText ? 'textDebug_' : '') .
+			'q' . $this->quality
+		);
+	}
+
+
 	/**
 	 * Pre-processes the text before rendering.
 	 *
