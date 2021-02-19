@@ -9,8 +9,8 @@
 
 <extension version="3.9.0" type="plugin" group="system" method="upgrade">
     <name>PLG_SYSTEM_SOCIALMAGICK</name>
-    <version>1.0.0</version>
-    <creationDate>2021-02-15</creationDate>
+    <version>1.0.0.b1</version>
+    <creationDate>2021-02-19</creationDate>
 
     <author>Lucid Fox</author>
     <authorEmail>hello@lucid-fox.com</authorEmail>
@@ -31,6 +31,7 @@
         <folder>fields</folder>
         <folder>fonts</folder>
         <folder>form</folder>
+        <folder>images</folder>
     </files>
 
     <languages folder="language">
