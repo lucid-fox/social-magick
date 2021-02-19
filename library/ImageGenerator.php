@@ -156,7 +156,7 @@ final class ImageGenerator
 		}
 
 		// Set the page metadata
-		$document->setMetaData('og:image', $imageURL, $attribute = 'property');
+		$document->setMetaData('og:image', $imageURL, 'property');
 		$document->setMetaData('og:image:alt', stripcslashes($text), 'property');
 		$document->setMetaData('og:image:height', $templateHeight, 'property');
 		$document->setMetaData('og:image:width', $templateWidth, 'property');
