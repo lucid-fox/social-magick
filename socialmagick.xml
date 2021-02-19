@@ -373,7 +373,7 @@
     <!-- Update servers -->
     <updateservers>
         <server type="extension" priority="1" name="Social Magick Updates">
-            https://raw.githubusercontent.com/lucid-fox/socialmagick/main/update/socialmagick.xml
+            https://raw.githubusercontent.com/lucid-fox/social-magick/main/update/socialmagick.xml
         </server>
     </updateservers>
 </extension>
