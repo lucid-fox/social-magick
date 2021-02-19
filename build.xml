@@ -53,6 +53,7 @@
                 <include name="fields/**" />
                 <include name="fonts/**" />
                 <include name="form/**" />
+                <include name="images/**" />
                 <include name="language/**" />
                 <include name="media/**" />
                 <include name="library/**" />
