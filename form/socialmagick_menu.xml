@@ -24,9 +24,10 @@
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_DESC"
                     class="btn-group btn-group-yesno"
-                    default="0"
+                    default="-1"
             >
                 <option value="0">JNO</option>
+                <option value="-1">JGLOBAL_INHERIT</option>
                 <option value="1">JYES</option>
             </field>
 
@@ -35,8 +36,10 @@
                     type="socialmagicktemplate"
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_DESC"
-                    showon="generate_images:1"
-            />
+                    showon="generate_images!:0"
+            >
+                <option value="">JGLOBAL_INHERIT</option>
+            </field>
 
             <field
                     name="custom_text"
@@ -44,7 +47,7 @@
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_DESC"
                     filter="no_html"
-                    showon="generate_images:1"
+                    showon="generate_images!:0"
                 />
 
             <field
@@ -54,7 +57,7 @@
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_DESC"
                     class="btn-group btn-group-yesno"
                     default="1"
-                    showon="generate_images:1"
+                    showon="generate_images!:0"
             >
                 <option value="0">JNO</option>
                 <option value="1">JYES</option>
@@ -67,7 +70,7 @@
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_DESC"
                     class="btn-group btn-group-yesno"
                     default="1"
-                    showon="generate_images:1"
+                    showon="generate_images!:0"
             >
                 <option value="0">JNO</option>
                 <option value="1">JYES</option>
@@ -79,8 +82,8 @@
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_DESC"
                     class="btn-group btn-group-yesno"
-                    default="none"
-                    showon="generate_images:1"
+                    default="fulltext"
+                    showon="generate_images!:0"
             >
                 <option value="none">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_NONE</option>
                 <option value="intro">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_INTRO</option>
@@ -94,7 +97,7 @@
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_DESC"
                     filter="no_html"
-                    showon="image_source:custom[AND]generate_images:1"
+                    showon="image_source:custom[AND]generate_images!:0"
             />
 
             <field
@@ -104,7 +107,7 @@
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_OG_DESC"
                     class="btn-group btn-group-yesno"
                     default="0"
-                    showon="generate_images:1"
+                    showon="generate_images!:0"
             >
                 <option value="0">JNO</option>
                 <option value="1">JYES</option>

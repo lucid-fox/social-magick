@@ -276,7 +276,18 @@ class plgSystemSocialmagick extends CMSPlugin
 			return;
 		}
 
+		// Get the default plugin (site-wide) parameters
+		$pluginParams = [
+			'generate_images' => $this->params->get('generate_images', '1'),
+			'template' => $this->params->get('template', ''),
+		];
+
+		// Get the menu item parameters
 		$params = ParametersRetriever::getMenuParameters($currentItem->id, $currentItem);
+
+		// Apply default site-wide settings if applicable
+		$params['template'] = $params['template'] ?: $pluginParams['template'];
+		$params['generate_images'] = ($params['generate_images'] == -1) ? $pluginParams['generate_images'] : $params['generate_images'];
 
 		if (($currentItem->query['option'] ?? '') == 'com_content')
 		{

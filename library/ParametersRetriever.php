@@ -35,7 +35,7 @@ abstract class ParametersRetriever
 	 */
 	private static $defaultParameters = [
 		'override'        => '0',
-		'generate_images' => '0',
+		'generate_images' => '-1',
 		'template'        => '',
 		'custom_text'     => '',
 		'use_article'     => '1',

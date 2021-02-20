@@ -47,6 +47,28 @@
                         description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_BYMEACOFFEE"
                 />
 
+                <field
+                        name="generate_images"
+                        type="fancyradio"
+                        label="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_GENERATE_IMAGES_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_GENERATE_IMAGES_DESC"
+                        class="btn-group btn-group-yesno"
+                        default="1"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
+                <field
+                        name="template"
+                        type="socialmagicktemplate"
+                        default="Solid"
+                        label="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_TEMPLATE_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_TEMPLATE_DESC"
+                        showon="generate_images:1"
+                />
+
+
                 <field name="og-templates" type="subform"
                        multiple="true"
                        label="Template Options" min="1">
