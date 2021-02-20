@@ -497,6 +497,13 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	private function getExtraImage(?string $imageSource, ?string $imageField): ?string
 	{
+		$customImage = trim(@$this->app->socialMagickImage ?? '');
+
+		if (!empty($customImage))
+		{
+			return $customImage;
+		}
+
 		if (empty($imageSource))
 		{
 			return null;
