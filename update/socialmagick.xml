@@ -21,9 +21,10 @@
         </maintainer>
         <maintainerurl>https://lucid-fox.com</maintainerurl>
         <type>plugin</type>
-        <element>plg_system_socialmagick</element>
+        <element>socialmagick</element>
         <folder>system</folder>
-        <client>1</client>
+        <client>0</client>
+        <client_id>0</client_id>
         <version>1.0.0.b2</version>
         <infourl title="Social Magick 1.0.0.b2">
             <![CDATA[https://github.com/lucid-fox/social-magick/releases/1.0.0.b2]]>
@@ -55,9 +56,10 @@
         </maintainer>
         <maintainerurl>https://lucid-fox.com</maintainerurl>
         <type>plugin</type>
-        <element>plg_system_socialmagick</element>
+        <element>socialmagick</element>
         <folder>system</folder>
-        <client>1</client>
+        <client>0</client>
+        <client_id>0</client_id>
         <version>1.0.0.b1</version>
         <infourl title="Social Magick 1.0.0.b1">
             <![CDATA[https://github.com/lucid-fox/social-magick/releases/1.0.0.b1]]>
