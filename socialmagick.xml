@@ -278,8 +278,8 @@
                         <field
                                 name="image-cover"
                                 type="fancyradio"
-                                label="Should the image be full-width and full-height?"
-                                description="Anything larger than your specified dimensions will be resized and cropped to fit."
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_COVER_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_COVER_DESC"
                                 class="btn-group btn-group-yesno"
                                 showon="use-article-image:1"
                                 default="1"
@@ -311,19 +311,21 @@
                         <field
                                 name="image-x"
                                 type="text"
-                                showon="use-article-image:1[AND]image-cover:0"
-                                label="Image Position (pixels from left edge)"
-                                filter="integer"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_X_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_X_DESC"
                                 default="0"
+                                filter="integer"
+                                showon="use-article-image:1[AND]image-cover:0"
                         />
 
                         <field
                                 name="image-y"
                                 type="text"
-                                showon="use-article-image:1[AND]image-cover:0"
-                                label="Image Position (pixels from top edge)"
+                                label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Y_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Y_DESC"
                                 filter="integer"
                                 default="0"
+                                showon="use-article-image:1[AND]image-cover:0"
                         />
                     </form>
                 </field>

@@ -1,8 +1,9 @@
 # Social Magick 1.0.0.b3
 
 * Added: Support for `socialMagickImage` application property to override the image to use in the template.
-* Added: Default site-wide template selection
+* Added: Default site-wide template selection (gh-13)
 * Fix: only trigger in the frontend HTML application
+* Fix: hardcoded language strings in plugin XML manifest (gh-15)
 
 # Social Magick 1.0.0.b2
 
