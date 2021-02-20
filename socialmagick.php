@@ -440,6 +440,14 @@ class plgSystemSocialmagick extends CMSPlugin
 		return '';
 	}
 
+	public function onAfterRender(): void
+	{
+		if ($this->params->get('add_og_declaration', '1') == 1)
+		{
+			$this->addOgPrefixToHtmlDocument();
+		}
+	}
+
 	/**
 	 * Get the appropriate text for rendering on the auto-generated Open Graph image
 	 *
@@ -626,5 +634,67 @@ class plgSystemSocialmagick extends CMSPlugin
 				return null;
 				break;
 		}
+	}
+
+	/**
+	 * Adds the `prefix="og: http://ogp.me/ns#"` declaration to the `<html>` root tag.
+	 *
+	 * @return  void
+	 *
+	 * @since   1.0.0
+	 */
+	private function addOgPrefixToHtmlDocument(): void
+	{
+		// Make sure I am in the front-end and I'm doing HTML output
+		/** @var \Joomla\CMS\Application\SiteApplication $app */
+		$app = $this->app;
+
+		if (!is_object($app) || !($app instanceof \Joomla\CMS\Application\SiteApplication))
+		{
+			return;
+		}
+
+		try
+		{
+			if ($this->app->getDocument()->getType() != 'html')
+			{
+				return;
+			}
+		}
+		catch (Throwable $e)
+		{
+			return;
+		}
+
+		$html = $app->getBody();
+
+		$hasDeclaration = function (string $html): bool {
+			$detectPattern = '/<html.*prefix\s?="(.*)\s?:(.*)".*>/iU';
+			$count         = preg_match_all($detectPattern, $html, $matches);
+
+			if ($count === 0)
+			{
+				return false;
+			}
+
+			for ($i = 0; $i < $count; $i++)
+			{
+				if (trim($matches[1][$i]) == 'og')
+				{
+					return true;
+				}
+			}
+
+			return false;
+		};
+
+		if ($hasDeclaration($html))
+		{
+			return;
+		}
+
+		$replacePattern = '/<html(.*)>/iU';
+
+		$app->setBody(preg_replace($replacePattern, '<html$1 prefix="og: http://ogp.me/ns#">', $html, 1));
 	}
 }
