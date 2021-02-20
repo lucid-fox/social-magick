@@ -275,7 +275,7 @@ class plgSystemSocialmagick extends CMSPlugin
 				[$defaultView, $task] = explode('.', $task);
 			}
 
-			$view = ($currentItem->query['view'] ?? '') ?: $defaultView;
+			$view = $this->app->input->getCmd('view', ($currentItem->query['view'] ?? '') ?: $defaultView);
 
 			switch ($view)
 			{
