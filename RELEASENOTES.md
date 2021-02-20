@@ -1,4 +1,4 @@
-Welcome to the first public beta of Social Magick! 🎉
+Welcome to the second public beta of Social Magick! 🎉
 
 This plugin automatically generates Open Graph images for your site's pages. These images are used when sharing a link to your site on social media (e.g. Facebook, Twitter, …) and chat applications (e.g. Slack, …). 
 
@@ -28,6 +28,6 @@ The templates provided are meant as examples; while you are welcome to use them 
 
 ### Beta software
 
-This is the first _public beta_ version of this plugin. The main features are already there but we have not written any documentation yet. 
+This is the _public beta_ version of this plugin. The main features are already there but we have not written any documentation yet. 
 
 While we have done fairly extensive testing and we even use it on production sites please bear in mind that there might be some rough spots. If you find something is not quite right please file a GitHub issue and try to be as descriptive as possible. We promise that we'll eventually look into it but kindly note that it might take a while. We ask for your understanding.
