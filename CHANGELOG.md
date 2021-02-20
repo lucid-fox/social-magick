@@ -1,6 +1,7 @@
 # Social Magick 1.0.0.b3
 
 * Added: Support for `socialMagickImage` application property to override the image to use in the template.
+* Fix: only trigger in the frontend HTML application
 
 # Social Magick 1.0.0.b2
 

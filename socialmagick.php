@@ -236,12 +236,25 @@ class plgSystemSocialmagick extends CMSPlugin
 			return;
 		}
 
+		// Is this the frontend HTML application?
 		if (!is_object($this->app) || !($this->app instanceof CMSApplication))
 		{
 			return;
 		}
 
 		if (!method_exists($this->app, 'isClient') || !$this->app->isClient('site'))
+		{
+			return;
+		}
+
+		try
+		{
+			if ($this->app->getDocument()->getType() != 'html')
+			{
+				return;
+			}
+		}
+		catch (Throwable $e)
 		{
 			return;
 		}
