@@ -4,6 +4,7 @@
 * Added: Default site-wide template selection (gh-13)
 * Fix: only trigger in the frontend HTML application
 * Fix: hardcoded language strings in plugin XML manifest (gh-15)
+* Fix: plugin installation file didn't have the version in the filename (gh-16)
 
 # Social Magick 1.0.0.b2
 

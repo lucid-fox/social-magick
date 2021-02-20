@@ -46,7 +46,7 @@
     <target name="plugin" description="Package the plugin"
             depends="new-release,setup-properties"
     >
-        <zip destfile="${dirs.release}/socialmagick.zip"
+        <zip destfile="${dirs.release}/socialmagick-${version}.zip"
              basedir="${dirs.root}"
              comment="Lucid Fox Social Magick ${version}">
             <fileset dir="${dirs.root}">
