@@ -205,12 +205,13 @@ final class ImageGenerator
 	public function getOGImage(string $text, string $templateName, ?string $extraImage): array
 	{
 		// Get the image template
-		$template       = array_merge([
+		$template = array_merge([
 			'base-image'        => '',
 			'template-w'        => 1200,
 			'template-h'        => 630,
 			'base-color'        => '#000000',
 			'base-color-alpha'  => 1,
+			'overlay_text'      => 1,
 			'text-font'         => '',
 			'font-size'         => 24,
 			'text-color'        => '#ffffff',

@@ -7,13 +7,7 @@
  * @license   GNU GPL v3 or later
  */
 
-/**
- * @package     LucidFox\SocialMagick
- * @subpackage
- *
- * @copyright   A copyright
- * @license     A "Slug" license name e.g. GPL2
- */
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace LucidFox\SocialMagick;
 
@@ -100,32 +94,14 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			imagealphablending($image, true);
 		}
 
-		// Pre-render the text
-		$fontSize = ((abs($template['font-size']) >= 1) ? abs($template['font-size']) : 24) * 0.755;
-		$fontPath = $this->normalizeFont($template['text-font']);
-		[
-			$textImage, $textImageWidth, $textImageHeight,
-		] = $this->renderText($text, $template['text-color'], $template['text-align'], $fontPath, $fontSize, $template['text-width'], $template['text-height'], 1.35);
-		$centerVertically   = $template['text-y-center'] == 1;
-		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
-		$centerHorizontally = $template['text-x-center'] == 1;
-		$horizontalOffset   = $centerHorizontally ? $template['text-x-adjust'] : $template['text-x-absolute'];
-
-		[
-			$textOffsetX, $textOffsetY,
-		] = $this->getTextRenderOffsets($templateWidth, $templateHeight, $textImageWidth, $textImageHeight, $centerVertically, $verticalOffset, $centerHorizontally, $horizontalOffset);
-
 		// Layer an extra image, if necessary
 		if (!empty($extraImage) && ($template['use-article-image'] !== '0'))
 		{
 			$image = $this->layerExtraImage($image, $extraImage, $template);
 		}
 
-		// Render text
-		imagealphablending($image, true);
-		imagealphablending($textImage, true);
-		imagecopy($image, $textImage, $textOffsetX - 50, $textOffsetY - 50, 0, 0, $textImageWidth + 100, $textImageHeight + 100);
-		imagedestroy($textImage);
+		// Overlay the text (if necessary)
+		$this->renderOverlayText($text, $template, $image);
 
 		// Write out the image file...
 		$imageType = $this->getNormalizedExtension($outFile);
@@ -459,6 +435,51 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		imageconvolution($image, $arrMatrix, $intSharpness, 0);
 
 		return $image;
+	}
+
+	/**
+	 * Overlay the text on the image.
+	 *
+	 * @param   string    $text      The text to render.
+	 * @param   array     $template  The OpenGraph image template definition.
+	 * @param   resource  $image     The GD image resource to overlay the text.
+	 *
+	 * @return  void
+	 *
+	 * @since   1.0.0
+	 */
+	private function renderOverlayText(string $text, array $template, &$image): void
+	{
+		// Make sure we are told to overlay text
+		if (($template['overlay_text'] ?? 1) != 1)
+		{
+			return;
+		}
+
+		// Get template parameters I'll be using later
+		$templateWidth  = $template['template-w'] ?? 1200;
+		$templateHeight = $template['template-h'] ?? 630;
+
+		// Pre-render the text
+		$fontSize = ((abs($template['font-size']) >= 1) ? abs($template['font-size']) : 24) * 0.755;
+		$fontPath = $this->normalizeFont($template['text-font']);
+		[
+			$textImage, $textImageWidth, $textImageHeight,
+		] = $this->renderText($text, $template['text-color'], $template['text-align'], $fontPath, $fontSize, $template['text-width'], $template['text-height'], 1.35);
+		$centerVertically   = $template['text-y-center'] == 1;
+		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
+		$centerHorizontally = $template['text-x-center'] == 1;
+		$horizontalOffset   = $centerHorizontally ? $template['text-x-adjust'] : $template['text-x-absolute'];
+
+		[
+			$textOffsetX, $textOffsetY,
+		] = $this->getTextRenderOffsets($templateWidth, $templateHeight, $textImageWidth, $textImageHeight, $centerVertically, $verticalOffset, $centerHorizontally, $horizontalOffset);
+
+		// Render text
+		imagealphablending($image, true);
+		imagealphablending($textImage, true);
+		imagecopy($image, $textImage, $textOffsetX - 50, $textOffsetY - 50, 0, 0, $textImageWidth + 100, $textImageHeight + 100);
+		imagedestroy($textImage);
 	}
 
 	/**

@@ -9,6 +9,8 @@
 
 namespace LucidFox\SocialMagick;
 
+use Joomla\CMS\Filesystem\Folder;
+
 defined('_JEXEC') || die();
 
 abstract class ImageRendererAbstract implements ImageRendererInterface
@@ -117,9 +119,16 @@ abstract class ImageRendererAbstract implements ImageRendererInterface
 	 */
 	protected function normalizeFont(string $font): string
 	{
+		// Convert a relative path to absolute
 		if (!@file_exists($font))
 		{
 			$font = JPATH_PLUGINS . '/system/socialmagick/fonts/' . $font;
+		}
+
+		// If the font doesn't exist or is unreadable fall back to OpenSans Bold shipped with the plugin
+		if (!@file_exists($font) || !@is_file($font) || !@is_readable($font))
+		{
+			$font = JPATH_PLUGINS . '/system/socialmagick/fonts/OpenSans-Bold.ttf';
 		}
 
 		return $font;

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Social Magick – Automatically generate Open Graph images on your site
  *
@@ -6,6 +7,8 @@
  * @copyright Copyright 2021-2021 Lucid Fox
  * @license   GNU GPL v3 or later
  */
+
+/** @noinspection PhpComposerExtensionStubsInspection */
 
 namespace LucidFox\SocialMagick;
 
@@ -41,8 +44,6 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 		 * through with this unholy, dirty trick and call it a day.
 		 */
 		$this->setTimeLimit(0);
-
-		$text = $this->preProcessText($text, false);
 
 		// Get the template's dimensions
 		$templateWidth  = $template['template-w'] ?? 1200;
@@ -80,67 +81,6 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 			$image->newImage($templateWidth, $templateHeight, $pixel);
 
 			$pixel->destroy();
-		}
-
-		// Set up the text
-		$theText = new Imagick();
-		$theText->setBackgroundColor('transparent');
-
-		/* Font properties */
-		$theText->setFont($this->normalizeFont($template['text-font']));
-		if ($template['font-size'] > 0)
-		{
-			$theText->setPointSize($template['font-size']);
-		}
-
-		/* Create text */
-		switch ($template['text-align'])
-		{
-			default:
-			case 'center':
-				$theText->setGravity(Imagick::GRAVITY_CENTER);
-				break;
-
-			case 'left':
-				$theText->setGravity(Imagick::GRAVITY_WEST);
-				break;
-
-			case 'right':
-				$theText->setGravity(Imagick::GRAVITY_EAST);
-				break;
-		}
-
-		// Create a `caption:` pseudo image that only manages text.
-		$theText->newPseudoImage($template['text-width'],
-			$template['text-height'],
-			'caption:' . $text);
-		$theText->setBackgroundColor('transparent');
-
-		// Remove extra height.
-		$theText->trimImage(0.0);
-
-		// Set text color
-		$clut           = new Imagick();
-		$textColorPixel = new ImagickPixel($template['text-color']);
-		$clut->newImage(1, 1, $textColorPixel);
-		$textColorPixel->destroy();
-		$theText->clutImage($clut, 7);
-		$clut->destroy();
-
-		// Figure out text vertical position
-		$yPos = $template['text-y-absolute'];
-
-		if ($template['text-y-center'] == '1')
-		{
-			$yPos = ($image->getImageHeight() - $theText->getImageHeight()) / 2.0 + $template['text-y-adjust'];
-		}
-
-		// Figure out text horizontal position
-		$xPos = $template['text-x-absolute'];
-
-		if ($template['text-x-center'] == '1')
-		{
-			$xPos = ($image->getImageWidth() - $theText->getImageWidth()) / 2.0 + $template['text-x-adjust'];
 		}
 
 		// Add extra image
@@ -200,48 +140,8 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 			$extraCanvas->destroy();
 		}
 
-		if ($this->debugText)
-		{
-			$debugW = $theText->getImageWidth();
-			$debugH = $theText->getImageHeight();
-
-			$draw        = new ImagickDraw();
-			$strokeColor = new ImagickPixel('#ff00ff');
-			$fillColor   = new ImagickPixel('#ffff0050');
-			$draw->setStrokeColor($strokeColor);
-			$draw->setFillColor($fillColor);
-			$draw->setStrokeOpacity(1);
-			$draw->setStrokeWidth(2);
-			$draw->rectangle(1, 1, $debugW - 1, $debugH - 1);
-
-			$debugImage       = new Imagick();
-			$transparentPixel = new ImagickPixel('transparent');
-			$debugImage->newImage($debugW, $debugH, $transparentPixel);
-
-			$debugImage->drawImage($draw);
-
-			$strokeColor->destroy();
-			$fillColor->destroy();
-			$draw->destroy();
-			$transparentPixel->destroy();
-
-			$image->compositeImage(
-				$debugImage,
-				Imagick::COMPOSITE_OVER,
-				$xPos,
-				$yPos
-			);
-			$debugImage->destroy();
-		}
-
-		// Composite bestfit caption over base image.
-		$image->compositeImage(
-			$theText,
-			Imagick::COMPOSITE_DEFAULT,
-			$xPos,
-			$yPos);
-
-		$theText->destroy();
+		// Overlay the text (if necessary)
+		$this->renderOverlayText($text, $template, $image);
 
 		// Write the image
 		$imageFormat = $this->getNormalizedExtension($outFile);
@@ -344,4 +244,131 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 		return $image;
 	}
 
+	/**
+	 * Overlay the text on the image.
+	 *
+	 * @param   string   $text      The text to render.
+	 * @param   array    $template  The OpenGraph image template definition.
+	 * @param   Imagick  $image     The image to overlay the text.
+	 *
+	 * @return  void
+	 *
+	 * @since   1.0.0
+	 */
+	private function renderOverlayText(string $text, array $template, Imagick &$image): void
+	{
+		// Make sure we are told to overlay text
+		if (($template['overlay_text'] ?? 1) != 1)
+		{
+			return;
+		}
+
+		// Normalize text
+		$text = $this->preProcessText($text, false);
+
+		// Set up the text
+		$theText = new Imagick();
+		$theText->setBackgroundColor('transparent');
+
+		/* Font properties */
+		$theText->setFont($this->normalizeFont($template['text-font']));
+
+		if ($template['font-size'] > 0)
+		{
+			$theText->setPointSize($template['font-size']);
+		}
+
+		/* Create text */
+		switch ($template['text-align'])
+		{
+			default:
+			case 'center':
+				$theText->setGravity(Imagick::GRAVITY_CENTER);
+				break;
+
+			case 'left':
+				$theText->setGravity(Imagick::GRAVITY_WEST);
+				break;
+
+			case 'right':
+				$theText->setGravity(Imagick::GRAVITY_EAST);
+				break;
+		}
+
+		// Create a `caption:` pseudo image that only manages text.
+		$theText->newPseudoImage($template['text-width'],
+			$template['text-height'],
+			'caption:' . $text);
+		$theText->setBackgroundColor('transparent');
+
+		// Remove extra height.
+		$theText->trimImage(0.0);
+
+		// Set text color
+		$clut           = new Imagick();
+		$textColorPixel = new ImagickPixel($template['text-color']);
+		$clut->newImage(1, 1, $textColorPixel);
+		$textColorPixel->destroy();
+		$theText->clutImage($clut, 7);
+		$clut->destroy();
+
+		// Figure out text vertical position
+		$yPos = $template['text-y-absolute'];
+
+		if ($template['text-y-center'] == '1')
+		{
+			$yPos = ($image->getImageHeight() - $theText->getImageHeight()) / 2.0 + $template['text-y-adjust'];
+		}
+
+		// Figure out text horizontal position
+		$xPos = $template['text-x-absolute'];
+
+		if ($template['text-x-center'] == '1')
+		{
+			$xPos = ($image->getImageWidth() - $theText->getImageWidth()) / 2.0 + $template['text-x-adjust'];
+		}
+
+		if ($this->debugText)
+		{
+			$debugW = $theText->getImageWidth();
+			$debugH = $theText->getImageHeight();
+
+			$draw        = new ImagickDraw();
+			$strokeColor = new ImagickPixel('#ff00ff');
+			$fillColor   = new ImagickPixel('#ffff0050');
+			$draw->setStrokeColor($strokeColor);
+			$draw->setFillColor($fillColor);
+			$draw->setStrokeOpacity(1);
+			$draw->setStrokeWidth(2);
+			$draw->rectangle(1, 1, $debugW - 1, $debugH - 1);
+
+			$debugImage       = new Imagick();
+			$transparentPixel = new ImagickPixel('transparent');
+			$debugImage->newImage($debugW, $debugH, $transparentPixel);
+
+			$debugImage->drawImage($draw);
+
+			$strokeColor->destroy();
+			$fillColor->destroy();
+			$draw->destroy();
+			$transparentPixel->destroy();
+
+			$image->compositeImage(
+				$debugImage,
+				Imagick::COMPOSITE_OVER,
+				$xPos,
+				$yPos
+			);
+			$debugImage->destroy();
+		}
+
+		// Composite bestfit caption over base image.
+		$image->compositeImage(
+			$theText,
+			Imagick::COMPOSITE_DEFAULT,
+			$xPos,
+			$yPos);
+
+		$theText->destroy();
+	}
 }

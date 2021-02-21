@@ -131,6 +131,18 @@
                         />
 
                         <field
+                                name="overlay_text"
+                                type="fancyradio"
+                                label="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_OVERLAY_TEXT_LABEL"
+                                description="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_OVERLAY_TEXT_DESC"
+                                class="btn-group btn-group-yesno"
+                                default="1"
+                        >
+                            <option value="0">JNO</option>
+                            <option value="1">JYES</option>
+                        </field>
+
+                        <field
                                 name="text-font"
                                 type="filelist"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_FONT_LABEL"
@@ -138,6 +150,7 @@
                                 directory="plugins/system/socialmagick/fonts/"
                                 hide_none="true"
                                 hide_default="true"
+                                showon="overlay_text:1"
                         />
 
                         <field
@@ -147,6 +160,7 @@
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_FONT_SIZE_DESC"
                                 filter="integer"
                                 default="24"
+                                showon="overlay_text:1"
                         />
 
                         <field
@@ -156,6 +170,7 @@
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_COLOR_DESC"
                                 default="#ffffff"
                                 format="hex"
+                                showon="overlay_text:1"
                         />
 
                         <field
@@ -165,6 +180,7 @@
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_HEIGHT_DESC"
                                 default="630"
                                 filter="integer"
+                                showon="overlay_text:1"
                         />
 
                         <field
@@ -174,6 +190,7 @@
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_WIDTH_DESC"
                                 default="1200"
                                 filter="integer"
+                                showon="overlay_text:1"
                         />
 
                         <field
@@ -182,6 +199,7 @@
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_DESC"
                                 default="left"
+                                showon="overlay_text:1"
                         >
                             <option value="left">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_OPT_LEFT</option>
                             <option value="center">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_ALIGN_OPT_CENTER</option>
@@ -195,6 +213,7 @@
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_CENTER_DESC"
                                 class="btn-group btn-group-yesno"
                                 default="1"
+                                showon="overlay_text:1"
                         >
                             <option value="0">JNO</option>
                             <option value="1">JYES</option>
@@ -203,11 +222,11 @@
                         <field
                                 name="text-y-adjust"
                                 type="text"
-                                showon="text-y-center:1"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ADJUST_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ADJUST_DESC"
                                 filter="integer"
                                 default="0"
+                                showon="text-y-center:1[AND]overlay_text:1"
                         />
 
                         <field
@@ -215,8 +234,8 @@
                                 type="text"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ABSOLUTE_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_ABSOLUTE_DESC"
-                                showon="text-y-center:0"
                                 filter="integer"
+                                showon="text-y-center:0[AND]overlay_text:1"
                         />
 
                         <field
@@ -226,6 +245,7 @@
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_CENTER_DESC"
                                 class="btn-group btn-group-yesno"
                                 default="1"
+                                showon="overlay_text:1"
                         >
                             <option value="0">JNO</option>
                             <option value="1">JYES</option>
@@ -236,9 +256,9 @@
                                 type="text"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ADJUST_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ADJUST_DESC"
-                                showon="text-x-center:1"
                                 filter="integer"
                                 default="0"
+                                showon="text-x-center:1[AND]overlay_text:1"
                         />
 
                         <field
@@ -246,8 +266,8 @@
                                 type="text"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ABSOLUTE_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_ABSOLUTE_DESC"
-                                showon="text-x-center:0"
                                 filter="integer"
+                                showon="text-x-center:0[AND]overlay_text:1"
                         />
 
                         <field
