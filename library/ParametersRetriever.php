@@ -34,15 +34,25 @@ abstract class ParametersRetriever
 	 * @since 1.0.0
 	 */
 	private static $defaultParameters = [
-		'override'        => '0',
-		'generate_images' => '-1',
-		'template'        => '',
-		'custom_text'     => '',
-		'use_article'     => '1',
-		'use_title'       => '1',
-		'image_source'    => 'none',
-		'image_field'     => '',
-		'override_og'     => '0',
+		'override'              => '0',
+		'generate_images'       => '-1',
+		'template'              => '',
+		'custom_text'           => '',
+		'use_article'           => '1',
+		'use_title'             => '1',
+		'image_source'          => 'none',
+		'image_field'           => '',
+		'override_og'           => '0',
+		'og_title'              => '-1',
+		'og_title_custom'       => '',
+		'og_description'        => '-1',
+		'og_description_custom' => '',
+		'og_url'                => '-1',
+		'og_site_name'          => '-1',
+		'twitter_card'          => '-1',
+		'twitter_site'          => '',
+		'twitter_creator'       => '',
+		'fb_app_id'             => '',
 	];
 
 	/**

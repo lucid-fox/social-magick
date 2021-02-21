@@ -10,8 +10,11 @@
 defined('_JEXEC') || die();
 
 use Joomla\CMS\Application\CMSApplication;
+use Joomla\CMS\Application\SiteApplication;
+use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
+use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\CMS\Menu\MenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Table\Table;
@@ -29,6 +32,7 @@ use LucidFox\SocialMagick\ParametersRetriever;
  */
 class plgSystemSocialmagick extends CMSPlugin
 {
+	/** @var SiteApplication */
 	public $app;
 
 	/**
@@ -263,7 +267,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		// Try to get the active menu item
 		try
 		{
-			$menu        = \Joomla\CMS\Menu\AbstractMenu::getInstance('site');
+			$menu        = AbstractMenu::getInstance('site');
 			$currentItem = $menu->getActive();
 		}
 		catch (Exception $e)
@@ -277,19 +281,10 @@ class plgSystemSocialmagick extends CMSPlugin
 			return;
 		}
 
-		// Get the default plugin (site-wide) parameters
-		$pluginParams = [
-			'generate_images' => $this->params->get('generate_images', '1'),
-			'template' => $this->params->get('template', ''),
-		];
-
 		// Get the menu item parameters
 		$params = ParametersRetriever::getMenuParameters($currentItem->id, $currentItem);
 
-		// Apply default site-wide settings if applicable
-		$params['template'] = $params['template'] ?: $pluginParams['template'];
-		$params['generate_images'] = ($params['generate_images'] == -1) ? $pluginParams['generate_images'] : $params['generate_images'];
-
+		// Apply core content settings overrides, if applicable
 		if (($currentItem->query['option'] ?? '') == 'com_content')
 		{
 			$task        = $currentItem->query['task'] ?? '';
@@ -345,57 +340,42 @@ class plgSystemSocialmagick extends CMSPlugin
 			}
 		}
 
-		// Am I supposed to generate an Open Graph image?
-		$willGenerate = $params['generate_images'] == 1;
+		// Apply default site-wide settings if applicable
+		$defaultPluginSettings = [
+			'template'              => '',
+			'generate_images'       => 1,
+			'og_title'              => 1,
+			'og_title_custom'       => '',
+			'og_description'        => 1,
+			'og_description_custom' => '',
+			'og_url'                => 1,
+			'og_site_name'          => 1,
+			'twitter_card'          => 2,
+			'twitter_site'          => '',
+			'twitter_creator'       => '',
+			'fb_app_id'             => '',
+		];
 
-		if (!$willGenerate)
+		foreach ($defaultPluginSettings as $key => $defaultValue)
 		{
-			return;
-		}
+			$inheritValue = is_numeric($defaultValue) ? -1 : '';
+			$paramsValue  = trim($params[$key]);
+			$paramsValue  = is_numeric($paramsValue) ? ((int) $paramsValue) : $paramsValue;
 
-		// Get the applicable options
-		$template    = $params['template'];
-		$customText  = $params['custom_text'];
-		$useArticle  = $params['use_article'] == 1;
-		$useTitle    = $params['use_title'] == 1;
-		$imageSource = $params['image_source'];
-		$imageField  = $params['image_field'];
-		$overrideOG  = $params['override_og'] == 1;
-
-		// Get the text to render.
-		$text = $this->getText($currentItem, $customText, $useArticle, $useTitle);
-
-		// No text? No image.
-		if (empty($text))
-		{
-			return;
-		}
-
-		$extraImage = $this->getExtraImage($imageSource, $imageField);
-
-		if (!is_null($extraImage))
-		{
-			// So, Joomla 4 adds some crap to the image. Let's fix that.
-			$questionMarkPos = strrpos($extraImage, '?');
-
-			if ($questionMarkPos !== false)
+			if ($paramsValue === $inheritValue)
 			{
-				$extraImage = substr($extraImage, 0, $questionMarkPos);
-			}
-
-			// Is this an absolute path?
-			if (@file_exists(JPATH_ROOT . '/' . $extraImage))
-			{
-				$extraImage = JPATH_ROOT . '/' . $extraImage;
+				$params[$key] = $this->params->get($key, $defaultValue);
 			}
 		}
 
-		if (!is_null($extraImage) && (!@file_exists($extraImage) || !@is_readable($extraImage)))
+		// Generate an Open Graph image, if applicable.
+		if ($params['generate_images'] == 1)
 		{
-			$extraImage = null;
+			$this->applyOGImage($params);
 		}
 
-		$this->helper->applyOGImage($text, $template, $extraImage, $overrideOG);
+		// Apply additional Open Graph tags
+		$this->applyOpenGraphTags($params);
 	}
 
 	/**
@@ -494,12 +474,12 @@ class plgSystemSocialmagick extends CMSPlugin
 			if ($this->article)
 			{
 				$article = ParametersRetriever::getArticleById($this->article);
-				$title = empty($article) ? '' : ($article->title ?? '');
+				$title   = empty($article) ? '' : ($article->title ?? '');
 			}
 			elseif ($this->category)
 			{
 				$category = ParametersRetriever::getCategoryById($this->category);
-				$title = empty($category) ? '' : ($category->title ?? '');
+				$title    = empty($category) ? '' : ($category->title ?? '');
 			}
 
 			if (!empty($title))
@@ -647,10 +627,10 @@ class plgSystemSocialmagick extends CMSPlugin
 	private function addOgPrefixToHtmlDocument(): void
 	{
 		// Make sure I am in the front-end and I'm doing HTML output
-		/** @var \Joomla\CMS\Application\SiteApplication $app */
+		/** @var SiteApplication $app */
 		$app = $this->app;
 
-		if (!is_object($app) || !($app instanceof \Joomla\CMS\Application\SiteApplication))
+		if (!is_object($app) || !($app instanceof SiteApplication))
 		{
 			return;
 		}
@@ -697,5 +677,212 @@ class plgSystemSocialmagick extends CMSPlugin
 		$replacePattern = '/<html(.*)>/iU';
 
 		$app->setBody(preg_replace($replacePattern, '<html$1 prefix="og: http://ogp.me/ns#">', $html, 1));
+	}
+
+	/**
+	 * Generate (if necessary) and apply the Open Graph image
+	 *
+	 * @param   array  $params  Applicable menu parameters, with any overrides already taken into account
+	 *
+	 * @return  void
+	 * @throws  Exception
+	 *
+	 * @since   1.0.0
+	 */
+	private function applyOGImage(array $params): void
+	{
+		$menu        = AbstractMenu::getInstance('site');
+		$currentItem = $menu->getActive();
+
+		// Get the applicable options
+		$template    = $params['template'];
+		$customText  = $params['custom_text'];
+		$useArticle  = $params['use_article'] == 1;
+		$useTitle    = $params['use_title'] == 1;
+		$imageSource = $params['image_source'];
+		$imageField  = $params['image_field'];
+		$overrideOG  = $params['override_og'] == 1;
+
+		// Get the text to render.
+		$text = $this->getText($currentItem, $customText, $useArticle, $useTitle);
+
+		$templates      = $this->helper->getTemplates();
+		$templateParams = $templates[$template] ?? [];
+
+		// If there is no text AND I am supposed to use overlay text I will not try to generate an image.
+		if (empty($text) && ($templateParams['overlay_text'] ?? 1))
+		{
+			return;
+		}
+
+		// Get the extra image location
+		$extraImage = $this->getExtraImage($imageSource, $imageField);
+
+		if (!is_null($extraImage))
+		{
+			// So, Joomla 4 adds some crap to the image. Let's fix that.
+			$questionMarkPos = strrpos($extraImage, '?');
+
+			if ($questionMarkPos !== false)
+			{
+				$extraImage = substr($extraImage, 0, $questionMarkPos);
+			}
+
+			// Is this an absolute path?
+			if (@file_exists(JPATH_ROOT . '/' . $extraImage))
+			{
+				$extraImage = JPATH_ROOT . '/' . $extraImage;
+			}
+		}
+
+		if (!is_null($extraImage) && (!@file_exists($extraImage) || !@is_readable($extraImage)))
+		{
+			$extraImage = null;
+		}
+
+		// Generate (if necessary) and apply the Open Graph image
+		$this->helper->applyOGImage($text, $template, $extraImage, $overrideOG);
+	}
+
+	/**
+	 * Apply the additional Open Graph tags
+	 *
+	 * @param   array  $params  Applicable menu item parameters
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
+	private function applyOpenGraphTags(array $params): void
+	{
+		// Apply Open Graph Title
+		switch ($params['og_title'])
+		{
+			case 0:
+				break;
+
+			case 1:
+				$this->conditionallyApplyMeta('og:title', $this->app->getDocument()->getTitle());
+				break;
+
+			case 2:
+				$this->conditionallyApplyMeta('og:title', $params['og_title_custom'] ?? $this->app->getDocument()->getTitle());
+				break;
+		}
+
+		// Apply Open Graph Description
+		switch ($params['og_description'])
+		{
+			case 0:
+				break;
+
+			case 1:
+				$this->conditionallyApplyMeta('og:description', $this->app->getDocument()->getDescription());
+				break;
+
+			case 2:
+				$this->conditionallyApplyMeta('og:description', $params['og_description_custom'] ?? $this->app->getDocument()->getDescription());
+				break;
+		}
+
+		// Apply Open Graph URL
+		if (($params['og_url'] ?? 1) == 1)
+		{
+			$this->conditionallyApplyMeta('og:url', $this->app->getDocument()->getBase());
+		}
+
+		// Apply Open Graph Site Name
+		if (($params['og_site_name'] ?? 1) == 1)
+		{
+			$this->conditionallyApplyMeta('og:site_name', $this->app->get('sitename', ''));
+		}
+
+		// Apply Facebook App ID
+		$fbAppId = trim($params['fb_app_id'] ?? '');
+
+		if (!empty($fbAppId))
+		{
+			$this->conditionallyApplyMeta('fb:app_id', $fbAppId);
+		}
+
+		// Apply Twitter options, of there is a Twitter card type
+		$twitterCard    = trim($params['twitter_card'] ?? '');
+		$twitterSite    = trim($params['twitter_site'] ?? '');
+		$twitterCreator = trim($params['twitter_creator'] ?? '');
+
+		switch ($twitterCard)
+		{
+			case 0:
+				// Nothing further to do with Twitter.
+				return;
+				break;
+
+			case 1:
+				$this->conditionallyApplyMeta('twitter:card', 'summary', 'name');
+				break;
+
+			case 2:
+				$this->conditionallyApplyMeta('twitter:card', 'summary_large_image', 'name');
+				break;
+		}
+
+		if (!empty($twitterSite))
+		{
+			$twitterSite = (substr($twitterSite, 0, 1) == '@') ? $twitterSite : ('@' . $twitterSite);
+			$this->conditionallyApplyMeta('twitter:site', $twitterSite, 'name');
+		}
+
+		if (!empty($twitterCreator))
+		{
+			$twitterCreator = (substr($twitterCreator, 0, 1) == '@') ? $twitterCreator : ('@' . $twitterCreator);
+			$this->conditionallyApplyMeta('twitter:creator', $twitterCreator, 'name');
+		}
+
+		// Transcribe Open Graph properties to Twitter meta
+		/** @var HtmlDocument $doc */
+		$doc = $this->app->getDocument();
+
+		$transcribes = [
+			'title'       => $doc->getMetaData('og:title', 'property'),
+			'description' => $doc->getMetaData('og:description', 'property'),
+			'image'       => $doc->getMetaData('og:image', 'property'),
+			'image:alt'   => $doc->getMetaData('og:image:alt', 'property'),
+		];
+
+		foreach ($transcribes as $key => $value)
+		{
+			$value = trim($value ?? '');
+
+			if (empty($value))
+			{
+				continue;
+			}
+
+			$this->conditionallyApplyMeta('twitter:' . $key, $value, 'name');
+		}
+	}
+
+	/**
+	 * Apply a meta attribute if it doesn't already exist
+	 *
+	 * @param   string  $name       The name of the meta to add
+	 * @param   mixed   $value      The value of the meta to apply
+	 * @param   string  $attribute  Meta attribute, default is 'property', could also be 'name'
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
+	private function conditionallyApplyMeta(string $name, $value, string $attribute = 'parameter'): void
+	{
+		/** @var HtmlDocument $doc */
+		$doc = $this->app->getDocument();
+
+		$existing = $doc->getMetaData($name, $attribute);
+
+		if (!empty($existing))
+		{
+			return;
+		}
+
+		$doc->setMetaData($name, $value, $attribute);
 	}
 }
