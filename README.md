@@ -33,7 +33,7 @@ This plugin has the following minimum requirements:
 * Set “Generate Open Graph images” to Yes.
 * Select the Solid template.
 * Save your menu item.
-* Go to metatags.io and paste the URL to the page of your site that corresponds to the menu item you selected. You can now see that it has a preview image.
+* Go to [metatags.io](https://metatags.io/) and paste the URL to the page of your site that corresponds to the menu item you selected. You can now see that it has a preview image.
 
 If you have menu items with core content (Joomla articles) categories and articles which make use of images you can select the Overlay template. You will need to set the “Extra image source” option to “Intro image” or “Full Article image”, depending on which image you want to use.
 
