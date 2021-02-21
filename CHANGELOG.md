@@ -3,6 +3,8 @@
 * Added: Support for `socialMagickImage` application property to override the image to use in the template.
 * Added: Default site-wide template selection (gh-13)
 * Added: Option to use no text in a template (gh-8)
+* Added: Options to add other OG tags (gh-4)
+* Added: Distribute the generated files in subdirectories (gh-22)
 * Fix: only trigger in the frontend HTML application
 * Fix: hardcoded language strings in plugin XML manifest (gh-15)
 * Fix: plugin installation file didn't have the version in the filename (gh-16)

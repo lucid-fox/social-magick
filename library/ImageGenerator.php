@@ -62,6 +62,14 @@ final class ImageGenerator
 	private $renderer;
 
 	/**
+	 * Number of subfolder levels for generated images
+	 *
+	 * @var   int
+	 * @since 1.0.0
+	 */
+	private $folderLevels = 0;
+
+	/**
 	 * ImageGenerator constructor.
 	 *
 	 * @param   Registry  $pluginParams  The plugin parameters. Used to set up internal properties.
@@ -72,11 +80,13 @@ final class ImageGenerator
 	{
 		$this->devMode      = $pluginParams->get('devmode', 0) == 1;
 		$this->outputFolder = $pluginParams->get('output_folder', 'images/og-generated') ?: 'images/og-generated';
-		$this->parseImageTemplates($pluginParams->get('og-templates', null));
+		$this->folderLevels = $pluginParams->get('folder_levels', 0);
 
 		$rendererType = $pluginParams->get('library', 'auto');
 		$textDebug    = $pluginParams->get('textdebug', '0') == 1;
 		$quality      = 100 - $pluginParams->get('quality', '95');
+
+		$this->parseImageTemplates($pluginParams->get('og-templates', null));
 
 		switch ($rendererType)
 		{
@@ -244,6 +254,7 @@ final class ImageGenerator
 			$outputFolder,
 			md5($text . $templateName . serialize($template) . ($extraImage ?? '') . $this->renderer->getOptionsKey())
 		));
+		$filename = FileDistributor::ensureDistributed(dirname($filename), basename($filename), $this->folderLevels);
 		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)), '/');
 		$imageUrl         = Uri::base() . $realRelativePath;
 

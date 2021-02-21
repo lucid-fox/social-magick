@@ -477,6 +477,17 @@
                 />
 
                 <field
+                        name="folder_levels"
+                        type="number"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_FOLDER_LEVELS_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_FOLDER_LEVELS_DESC"
+                        default="0"
+                        min="0"
+                        max="5"
+                        filter="integer"
+                    />
+
+                <field
                         name="add_og_declaration"
                         type="fancyradio"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_ADD_OG_DECLARATION_LABEL"
