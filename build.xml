@@ -21,6 +21,10 @@
     <property file="${phing.dir}/build.properties" override="true"/>
     <!-- ### Project, OS-dependent -->
     <property file="${phing.dir}/build.${host.os}.properties" override="true"/>
+    <!-- ### Project properties, one folder up -->
+    <property file="${phing.dir}/../build.properties" override="true"/>
+    <!-- ### Project, OS-dependent, one folder up -->
+    <property file="${phing.dir}/../build.${host.os}.properties" override="true"/>
     <!-- ### Privileged properties -->
     <property file="${phing.dir}/privileged.properties" override="true"/>
     <!-- ### Overrides, per project -->
