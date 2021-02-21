@@ -48,7 +48,7 @@
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_CUSTOM_TEXT_DESC"
                     filter="no_html"
                     showon="generate_images!:0"
-                />
+            />
 
             <field
                     name="use_article"
@@ -112,6 +112,127 @@
                 <option value="0">JNO</option>
                 <option value="1">JYES</option>
             </field>
+
+            <field
+                    type="note"
+                    class="alert alert-info"
+                    label="PLG_SYSTEM_SOCIALMAGICK_OGTAGS_FIELDSET_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_OGTAGS_FIELDSET_DESC"
+            />
+
+            <field
+                    name="og_title"
+                    type="list"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_TITLE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_TITLE_DESC"
+                    default="-1"
+            >
+                <option value="-1">JGLOBAL_INHERIT</option>
+                <option value="0">PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_TITLE_OPT_NO</option>
+                <option value="1">PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_TITLE_OPT_JOOMLA</option>
+                <option value="2">PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_TITLE_OPT_CUSTOM</option>
+            </field>
+
+            <field
+                    name="og_title_custom"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_TITLE_CUSTOM_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_TITLE_CUSTOM_DESC"
+                    default=""
+                    filter="no_html"
+                    showon="og_title:2"
+            />
+
+            <field
+                    name="og_description"
+                    type="list"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_DESCRIPTION_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_DESCRIPTION_DESC"
+                    default="-1"
+            >
+                <option value="-1">JGLOBAL_INHERIT</option>
+                <option value="0">PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_DESCRIPTION_OPT_NO</option>
+                <option value="1">PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_DESCRIPTION_OPT_JOOMLA</option>
+                <option value="2">PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_DESCRIPTION_OPT_CUSTOM</option>
+            </field>
+
+            <field
+                    name="og_description_custom"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_DESCRIPTION_CUSTOM_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_DESCRIPTION_CUSTOM_DESC"
+                    default=""
+                    filter="no_html"
+                    showon="og_description:2"
+            />
+
+            <field
+                    name="og_url"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_URL_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_URL_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="-1"
+            >
+                <option value="-1">JGLOBAL_INHERIT</option>
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="og_site_name"
+                    type="fancyradio"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_SITE_NAME_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_SITE_NAME_DESC"
+                    class="btn-group btn-group-yesno"
+                    default="-1"
+            >
+                <option value="-1">JGLOBAL_INHERIT</option>
+                <option value="0">JNO</option>
+                <option value="1">JYES</option>
+            </field>
+
+            <field
+                    name="twitter_card"
+                    type="list"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_CARD_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_CARD_DESC"
+                    default="-1"
+            >
+                <option value="-1">JGLOBAL_INHERIT</option>
+                <option value="0">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_CARD_OPT_NONE</option>
+                <option value="1">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_CARD_OPT_SUMMARY</option>
+                <option value="2">PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_CARD_OPT_SUMMARY_LARGE</option>
+            </field>
+
+            <field
+                    name="twitter_site"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_SITE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_SITE_DESC"
+                    default=""
+                    filter="no_html"
+                    showon="twitter_card!:0"
+            />
+
+            <field
+                    name="twitter_creator"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_CREATOR_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TWITTER_CREATOR_DESC"
+                    default=""
+                    filter="no_html"
+                    showon="twitter_card!:0"
+            />
+
+            <field
+                    name="fb_app_id"
+                    type="text"
+                    label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_FB_APP_ID_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_FB_APP_ID_DESC"
+                    default=""
+                    filter="no_html"
+            />
         </fieldset>
     </fields>
 </form>
