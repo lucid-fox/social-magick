@@ -341,8 +341,11 @@ class plgSystemSocialmagick extends CMSPlugin
 		}
 
 		// Apply default site-wide settings if applicable
+		$templateKeys    = array_keys($this->helper->getTemplates() ?? []);
+		$defaultTemplate = count($templateKeys) ? array_shift($templateKeys) : '';
+
 		$defaultPluginSettings = [
-			'template'              => '',
+			'template'              => $defaultTemplate,
 			'generate_images'       => 1,
 			'og_title'              => 1,
 			'og_title_custom'       => '',
