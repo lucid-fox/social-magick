@@ -92,6 +92,7 @@ class plgSystemSocialmagick extends CMSPlugin
 	public function onContentPrepareForm(Form $form, $data): bool
 	{
 		$this->loadLanguage();
+		$this->loadLanguage('plg_system_socialmagick.sys');
 
 		Form::addFormPath(__DIR__ . '/form');
 
