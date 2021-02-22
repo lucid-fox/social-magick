@@ -465,7 +465,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		$fontPath = $this->normalizeFont($template['text-font']);
 		[
 			$textImage, $textImageWidth, $textImageHeight,
-		] = $this->renderText($text, $template['text-color'], $template['text-align'], $fontPath, $fontSize, $template['text-width'], $template['text-height'], 1.35);
+		] = $this->renderText($text, $template['text-color'], $template['text-align'], $fontPath, $fontSize, $template['text-width'], $template['text-height'], $template['text-y-center'] == 1, 1.35);
 		$centerVertically   = $template['text-y-center'] == 1;
 		$verticalOffset     = $centerVertically ? $template['text-y-adjust'] : $template['text-y-absolute'];
 		$centerHorizontally = $template['text-x-center'] == 1;
@@ -498,7 +498,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 *
 	 * @since   1.0.0
 	 */
-	private function renderText(string $text, string $color, string $alignment, string $font, int $fontSize, int $maxWidth, int $maxHeight, float $lineSpacing = 1.35)
+	private function renderText(string $text, string $color, string $alignment, string $font, int $fontSize, int $maxWidth, int $maxHeight, bool $centerTextVertically, float $lineSpacing = 1.35)
 	{
 		// Pre-process text
 		$text = $this->preProcessText($text);
@@ -591,11 +591,15 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		$colorResource = imagecolorallocate($image, $colorValues[0], $colorValues[1], $colorValues[2]);
 
 		// Get the y offset because GD is doing weird things
-		$boundingBox = imagettfbbox($fontSize, 0, $font, $lines[0]['text']);
-		$yOffset     = -$boundingBox[7] + 1;
+		$boundingBox   = imagettfbbox($fontSize, 0, $font, $lines[0]['text']);
+		$yOffset       = -$boundingBox[7] + 1;
+		$centerYOffset = 0;
 
 		// At this point the text would be anchored to the top of the text box. We want it centred in the box.
-		$centerYOffset = (int) ceil(($maxHeight - $textHeight) / 2.0);
+		if ($centerTextVertically)
+		{
+			$centerYOffset = (int) ceil(($maxHeight - $textHeight) / 2.0);
+		}
 
 		foreach ($lines as $line)
 		{
