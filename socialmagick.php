@@ -432,6 +432,35 @@ class plgSystemSocialmagick extends CMSPlugin
 		}
 	}
 
+	public function onAjaxSocialmagick()
+	{
+		$key     = trim($this->params->get('cron_url_key', ''));
+		$maxExec = max(1, (int) $this->params->get('cron_max_exec', 20));
+		$days = max(1, (int) $this->params->get('old_images_after', 180));
+
+		if (empty($key))
+		{
+			header('HTTP/1.0 403 Forbidden');
+
+			return;
+		}
+
+		try
+		{
+			$this->helper->deleteOldImages($days, $maxExec);
+		}
+		catch (Exception $e)
+		{
+			header('HTTP/1.0 500 Internal Server Error');
+
+			echo $e->getCode() . ' ' . $e->getMessage();
+
+			return;
+		}
+
+		echo "OK";
+	}
+
 	/**
 	 * Get the appropriate text for rendering on the auto-generated Open Graph image
 	 *

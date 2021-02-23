@@ -465,6 +465,55 @@
                 />
 
             </fieldset>
+
+            <fieldset name="oldimages"
+                      label="PLG_SYSTEM_SOCIALMAGICK_OLDIMAGES_FIELDSET_LABEL"
+                      description="PLG_SYSTEM_SOCIALMAGICK_OLDIMAGES_FIELDSET_DESC"
+            >
+                <field
+                        name="old_images_after"
+                        type="number"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OLD_IMAGES_AFTER_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OLD_IMAGES_AFTER_DESC"
+                        default="180"
+                        min="1"
+                        max="3650"
+                        filter="integer"
+                />
+
+                <field
+                        name="pseudo_cron"
+                        type="fancyradio"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_ADD_PSEUDO_CRON_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_ADD_PSEUDO_CRON_DESC"
+                        class="btn-group btn-group-yesno"
+                        default="1"
+                >
+                    <option value="0">JNO</option>
+                    <option value="1">JYES</option>
+                </field>
+
+                <field
+                        name="cron_url_key"
+                        type="text"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_CRON_URL_KEY_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_CRON_URL_KEY_DESC"
+                        filter="plaintext"
+                />
+
+                <field
+                        name="cron_max_exec"
+                        type="number"
+                        label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_CRON_MAX_EXEC_LABEL"
+                        description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_CRON_MAX_EXEC_DESC"
+                        default="20"
+                        min="1"
+                        max="120"
+                        filter="integer"
+                />
+
+            </fieldset>
+
             <fieldset name="advanced"
                       label="PLG_SYSTEM_SOCIALMAGICK_ADVANCED_FIELDSET_LABEL">
                 <field
@@ -548,6 +597,23 @@
             </fieldset>
         </fields>
     </config>
+
+    <!-- Database schema -->
+    <install>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/mysql/install.sql</file>
+        </sql>
+    </install>
+    <uninstall>
+        <sql>
+            <file driver="mysql" charset="utf8">sql/mysql/uninstall.sql</file>
+        </sql>
+    </uninstall>
+    <update>
+        <schemas>
+            <schemapath type="mysql">sql/mysql/updates</schemapath>
+        </schemas>
+    </update>
 
     <!-- Installation script -->
     <scriptfile>script.plg_system_socialmagick.php</scriptfile>

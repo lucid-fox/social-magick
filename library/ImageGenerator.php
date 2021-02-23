@@ -11,10 +11,13 @@ namespace LucidFox\SocialMagick;
 
 defined('_JEXEC') || die();
 
+use DateInterval;
 use Exception;
 use Joomla\CMS\Application\ApplicationHelper;
+use Joomla\CMS\Date\Date;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Uri\Uri;
@@ -70,6 +73,22 @@ final class ImageGenerator
 	private $folderLevels = 0;
 
 	/**
+	 * Old image threshold, in days
+	 *
+	 * @var   int
+	 * @since 1.0.0
+	 */
+	private $oldImageThreshold = 0;
+
+	/**
+	 * Should I delete old images if the image I am asked to generate already exists?
+	 *
+	 * @var   bool
+	 * @since 1.0.0
+	 */
+	private $autoDeleteOldImages = false;
+
+	/**
 	 * ImageGenerator constructor.
 	 *
 	 * @param   Registry  $pluginParams  The plugin parameters. Used to set up internal properties.
@@ -78,9 +97,11 @@ final class ImageGenerator
 	 */
 	public function __construct(Registry $pluginParams)
 	{
-		$this->devMode      = $pluginParams->get('devmode', 0) == 1;
-		$this->outputFolder = $pluginParams->get('output_folder', 'images/og-generated') ?: 'images/og-generated';
-		$this->folderLevels = $pluginParams->get('folder_levels', 0);
+		$this->devMode             = $pluginParams->get('devmode', 0) == 1;
+		$this->outputFolder        = $pluginParams->get('output_folder', 'images/og-generated') ?: 'images/og-generated';
+		$this->folderLevels        = $pluginParams->get('folder_levels', 0);
+		$this->oldImageThreshold   = $pluginParams->get('old_images_after', 180);
+		$this->autoDeleteOldImages = $pluginParams->get('pseudo_cron', '1') == 1;
 
 		$rendererType = $pluginParams->get('library', 'auto');
 		$textDebug    = $pluginParams->get('textdebug', '0') == 1;
@@ -254,13 +275,32 @@ final class ImageGenerator
 			$outputFolder,
 			md5($text . $templateName . serialize($template) . ($extraImage ?? '') . $this->renderer->getOptionsKey())
 		));
-		$filename = FileDistributor::ensureDistributed(dirname($filename), basename($filename), $this->folderLevels);
+		$filename         = FileDistributor::ensureDistributed(dirname($filename), basename($filename), $this->folderLevels);
 		$realRelativePath = ltrim(substr($filename, strlen(JPATH_ROOT)), '/');
 		$imageUrl         = Uri::base() . $realRelativePath;
+
+		// Update the image's last access date
+		$this->hitImage(basename($filename, '.png'));
 
 		// If the file exists return early
 		if (@file_exists($filename) && !$this->devMode)
 		{
+			/**
+			 * Run the old image deletion pseudo-CRON. Only runs on existing images to prevent excessive slow-down of
+			 * the site. It uses very conservative settigns for the same reason.
+			 */
+			if ($this->autoDeleteOldImages)
+			{
+				try
+				{
+					$this->deleteOldImages($this->oldImageThreshold, 1);
+				}
+				catch (Exception $e)
+				{
+					// Oops...
+				}
+			}
+
 			$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
 
 			return [$imageUrl . '?' . $mediaVersion, $templateWidth, $templateHeight];
@@ -286,6 +326,183 @@ final class ImageGenerator
 		$mediaVersion = ApplicationHelper::getHash(@filemtime($filename));
 
 		return [$imageUrl . '?' . $mediaVersion, $templateWidth, $templateHeight];
+	}
+
+	/**
+	 * Update the last access date/time stamp for an image.
+	 *
+	 * Obviously this only works when we are asked to apply the OpenGraph image. If you have Joomla caching turned on
+	 * this will only be called once every caching period.
+	 *
+	 * @param   string  $hash
+	 *
+	 * @since   1.0.0
+	 */
+	public function hitImage(string $hash): void
+	{
+		try
+		{
+			$db    = Factory::getDbo();
+			$jNow  = new Date();
+			$query = $db->getQuery(true)
+				->insert($db->qn('#__socialmagick_images'))
+				->columns([$db->qn('hash'), $db->qn('last_access')])
+				->values(implode(',', [
+					$db->q($hash), $db->q($jNow->toSql()),
+				]));
+		}
+		catch (Exception $e)
+		{
+			// Something broke in Joomla. Nevermind.
+			return;
+		}
+
+		try
+		{
+			$db->setQuery($query)->execute();
+
+			return;
+		}
+		catch (Exception $e)
+		{
+			// We probably need to just run an update. Let's try that.
+		}
+
+		$query = $db->getQuery(true)
+			->update($db->qn('#__socialmagick_images'))
+			->set($db->qn('last_access') . ' = ' . $db->q($jNow->toSql()))
+			->where($db->qn('hash') . ' = ' . $db->q($hash));
+
+		try
+		{
+			$db->setQuery($query)->execute();
+		}
+		catch (Exception $e)
+		{
+			// DB error? No problem. Just go ahead.
+		}
+	}
+
+	/**
+	 * Deletes generated Open Graph images older than this many days
+	 *
+	 * @param   int  $days     Minimum time since the last access time to warrant image deletion
+	 * @param   int  $maxTime  Maximum execution time, in seconds
+	 *
+	 *
+	 * @throws Exception
+	 * @since  1.0.0
+	 */
+	public function deleteOldImages(int $days, int $maxTime = 5): void
+	{
+		if ($days === 0)
+		{
+			return;
+		}
+
+		$deleted      = [];
+		$start        = microtime(true);
+		$outputFolder = str_replace('\\', '/', trim($this->outputFolder, '/\\'));
+		$maxTime      = min($maxTime, 1);
+
+		while (true)
+		{
+			// Get a batch of old images
+			$oldImages = $this->getOldImages($days, 50);
+
+			// No images? We are done.
+			if (empty($oldImages))
+			{
+				break;
+			}
+
+			// Process each old image record
+			foreach ($oldImages as $hash)
+			{
+				// If we have already deleted 50 images return. Prevents the delete SQL query from becoming unwieldy.
+				if (count($deleted) >= 50)
+				{
+					break 2;
+				}
+
+				// We ran out of time. Return now.
+				if (microtime(true) - $start >= $maxTime)
+				{
+					break 2;
+				}
+
+				// Get the correct path for the image file to delete
+				$filename = FileDistributor::ensureDistributed($outputFolder, $hash . '.png', $this->folderLevels);
+
+				// No such file. Mark it as already deleted and move on.
+				if (!@file_exists($filename))
+				{
+					$deleted[] = $hash;
+
+					continue;
+				}
+
+				// Try (very hard) to delete the old iamge file
+				$unlinked = true;
+
+				if (!@unlink($filename))
+				{
+					$unlinked = File::delete($filename);
+				}
+
+				// Add positively deleted images to the list of image records to delete.
+				if (!$unlinked)
+				{
+					continue;
+				}
+
+				$deleted[] = $hash;
+			}
+		}
+
+		// Delete records or removed images, if necessary
+		if (empty($deleted))
+		{
+			return;
+		}
+
+		try
+		{
+			$db    = Factory::getDbo();
+			$query = $db->getQuery(true)
+				->delete('#__socialmagick_images')
+				->where($db->qn('hash') . ' IN(' . implode(',', array_map([$db, 'q'], $deleted)) . ')');
+			$db->setQuery($query)->execute();
+		}
+		catch (Exception $e)
+		{
+			// Shouldn't happen but I know better than to be an optimist when it comes to building software.
+		}
+	}
+
+	/**
+	 * Get image hashes older then this many days
+	 *
+	 * @param   int  $days       Number of days since last access
+	 * @param   int  $maxImages  Maximum number of images to return in a single operation
+	 *
+	 * @return  array  The image hashes fulfilling the criteria
+	 *
+	 * @throws Exception
+	 * @since  1.0.0
+	 */
+	private function getOldImages(int $days = 180, $maxImages = 50): array
+	{
+		$db    = Factory::getDbo();
+		$jNow  = new Date();
+		$jThen = $jNow->sub(new DateInterval(sprintf('P%dD', $days)));
+		$query = $db->getQuery(true)
+			->select($db->qn('hash'))
+			->from('#__socialmagick_images')
+			->where($db->qn('last_access') . ' <= ' . $db->q($jThen->toSql()))
+			->setLimit(min($maxImages, 1));
+
+		return $db->setQuery($query)->loadColumn() ?? [];
 	}
 
 	/**
