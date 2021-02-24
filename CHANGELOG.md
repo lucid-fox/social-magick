@@ -9,6 +9,7 @@
 * Fix: only trigger in the frontend HTML application
 * Fix: hardcoded language strings in plugin XML manifest (gh-15)
 * Fix: plugin installation file didn't have the version in the filename (gh-16)
+* Fix: GD library pushes the text an additional 50px in the x and y axes
 
 # Social Magick 1.0.0.b2
 

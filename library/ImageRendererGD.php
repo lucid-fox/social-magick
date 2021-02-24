@@ -478,7 +478,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		// Render text
 		imagealphablending($image, true);
 		imagealphablending($textImage, true);
-		imagecopy($image, $textImage, $textOffsetX - 50, $textOffsetY - 50, 0, 0, $textImageWidth + 100, $textImageHeight + 100);
+		imagecopy($image, $textImage, $textOffsetX, $textOffsetY, 0, 0, $textImageWidth + 100, $textImageHeight + 100);
 		imagedestroy($textImage);
 	}
 
@@ -648,7 +648,8 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		// If centering vertically we need to calculate a different starting Y coordinate
 		if ($centerVertically)
 		{
-			$y = (int) (($baseImageHeight - $realTextHeight) / 2);
+			// The -50 at the end is removing half of our 100px margin
+			$y = (int) (($baseImageHeight - $realTextHeight) / 2) - 50;
 		}
 
 		// Apply any vertical offset
@@ -657,7 +658,8 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		// If centering horizontally we need to calculate a different starting X coordinate
 		if ($centerHorizontally)
 		{
-			$x = (int) (($baseImageWidth - $realTextWidth) / 2);
+			// The -50 at the end is removing half of our 100px margin
+			$x = (int) (($baseImageWidth - $realTextWidth) / 2) - 50;
 		}
 
 		// Apply any horizontal offset
