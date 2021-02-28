@@ -772,6 +772,8 @@ class plgSystemSocialmagick extends CMSPlugin
 			$extraImage = null;
 		}
 
+		$template = trim(@$this->app->socialMagickTemplate ?? '') ?: $template;
+
 		// Generate (if necessary) and apply the Open Graph image
 		$this->helper->applyOGImage($text, $template, $extraImage, $overrideOG);
 	}

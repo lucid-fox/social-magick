@@ -1,5 +1,6 @@
 # Social Magick 1.0.0.b3
 
+* Added: Support for `socialMagickTemplate` application property to override the template to use generating the image.
 * Added: Support for `socialMagickImage` application property to override the image to use in the template.
 * Added: Default site-wide template selection (gh-13)
 * Added: Option to use no text in a template (gh-8)
