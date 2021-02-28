@@ -61,6 +61,7 @@
                 <include name="language/**" />
                 <include name="media/**" />
                 <include name="library/**" />
+                <include name="sql/**" />
                 <include name="script.plg_system_socialmagick.php" />
                 <include name="socialmagick.php" />
                 <include name="socialmagick.xml" />

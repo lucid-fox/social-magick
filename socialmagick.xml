@@ -27,11 +27,12 @@
         <filename>.htaccess</filename>
         <filename>web.config</filename>
 
-        <folder>library</folder>
         <folder>fields</folder>
         <folder>fonts</folder>
         <folder>form</folder>
         <folder>images</folder>
+        <folder>library</folder>
+        <folder>sql</folder>
     </files>
 
     <languages folder="language">
