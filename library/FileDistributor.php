@@ -68,7 +68,9 @@ class FileDistributor
 		$distributedPath = self::getDistributedPath($basePath, $fileName, $levels, false);
 
 		// Make sure the distributed directory structure exists
-		$absoluteDistributedPath     = $basePath . dirname($distributedPath);
+		$relPath                     = dirname($distributedPath);
+		$relPath                     = ($relPath === '.') ? '' : $relPath;
+		$absoluteDistributedPath     = rtrim($basePath . $relPath, '/' . DIRECTORY_SEPARATOR);
 		$absoluteDistributedPathName = $basePath . $distributedPath;
 
 		if (!@is_dir($absoluteDistributedPath) && !@mkdir($absoluteDistributedPath, 0755, true))
@@ -77,8 +79,6 @@ class FileDistributor
 		}
 
 		// Hunt for an old, existing file anywhere in the path up to and including to $basePath
-		$relPath = dirname($distributedPath);
-
 		while (!empty($relPath))
 		{
 			$relPath = dirname($relPath);
@@ -100,7 +100,7 @@ class FileDistributor
 				$didMove = File::move($sourceFile, $absoluteDistributedPathName);
 			}
 
-			return $didMove ? $distributedPath : $sourceFile;
+			return $didMove ? $absoluteDistributedPathName : $sourceFile;
 		}
 
 		// If the distributed file exists return its path
