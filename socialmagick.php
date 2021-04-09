@@ -905,7 +905,7 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * @return  void
 	 * @since   1.0.0
 	 */
-	private function conditionallyApplyMeta(string $name, $value, string $attribute = 'parameter'): void
+	private function conditionallyApplyMeta(string $name, $value, string $attribute = 'property'): void
 	{
 		/** @var HtmlDocument $doc */
 		$doc = $this->app->getDocument();
