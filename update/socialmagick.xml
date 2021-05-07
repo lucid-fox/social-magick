@@ -25,6 +25,41 @@
         <folder>system</folder>
         <client>0</client>
         <client_id>0</client_id>
+        <version>1.0.0.b3</version>
+        <infourl title="Social Magick 1.0.0.b3">
+            <![CDATA[https://github.com/lucid-fox/social-magick/releases/1.0.0.b3]]>
+        </infourl>
+        <downloads>
+            <downloadurl type="full" format="zip">
+                <![CDATA[https://github.com/lucid-fox/social-magick/releases/1.0.0.b3/socialmagick.zip]]>
+            </downloadurl>
+        </downloads>
+        <tags>
+            <tag>stable</tag>
+        </tags>
+        <targetplatform name="joomla" version="((3\.9)|(4\.0))"/>
+        <php_minimum>7.2</php_minimum>
+        <supported_databases mysql="5.5.3" mariadb="10.1" />
+    </update>
+
+
+    <update>
+        <section>Updates</section>
+        <name>
+            <![CDATA[Social Magick]]>
+        </name>
+        <description>
+            <![CDATA[Updates for Lucid Fox Social Magick – A Joomla 3 and 4 plugin to automatically generate Open Graph images.]]>
+        </description>
+        <maintainer>
+            <![CDATA[Lucid Fox]]>
+        </maintainer>
+        <maintainerurl>https://lucid-fox.com</maintainerurl>
+        <type>plugin</type>
+        <element>socialmagick</element>
+        <folder>system</folder>
+        <client>0</client>
+        <client_id>0</client_id>
         <version>1.0.0.b2</version>
         <infourl title="Social Magick 1.0.0.b2">
             <![CDATA[https://github.com/lucid-fox/social-magick/releases/1.0.0.b2]]>
