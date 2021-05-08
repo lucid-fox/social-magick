@@ -1,3 +1,6 @@
+# Social Magick 1.0.0.b4
+* Fix: Default is to use no image but default menu params claim the default is to use the fulltext image (gh-28)
+
 # Social Magick 1.0.0.b3
 
 * Added: Support for `socialMagickTemplate` application property to override the template to use generating the image.
