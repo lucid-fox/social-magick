@@ -302,7 +302,8 @@ class plgSystemSocialmagick extends CMSPlugin
 				case 'categories':
 				case 'category':
 					// Apply category overrides if applicable
-					$category = $this->category ?? $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
+					$category = $this->category ?: $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
+
 					if ($category)
 					{
 						$catParams = ParametersRetriever::getCategoryParameters($category);
@@ -321,7 +322,7 @@ class plgSystemSocialmagick extends CMSPlugin
 				case 'article':
 				case 'featured':
 					// Apply article overrides if applicable
-					$article = $this->article ?? $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
+					$article = $this->article ?: $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
 
 					if ($article)
 					{
