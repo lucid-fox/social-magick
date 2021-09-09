@@ -140,6 +140,8 @@ class plgSystemSocialmagick extends CMSPlugin
 			$data  = $input->get('jform', [], 'array');
 		}
 
+		$data = (array)$data;
+
 		// Make sure I have data to save
 		if (!isset($data['socialmagick']))
 		{

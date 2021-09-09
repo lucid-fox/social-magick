@@ -1,6 +1,7 @@
 # Social Magick 1.0.0.b4
 * Fix: Default is to use no image but default menu params claim the default is to use the fulltext image (gh-28)
 * Fix: Wrong parameters may be used when caching is enabled (gh-27)
+* Fix: Prevents uploading images in Joomla 4
 
 # Social Magick 1.0.0.b3
 
