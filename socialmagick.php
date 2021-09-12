@@ -174,7 +174,7 @@ class plgSystemSocialmagick extends CMSPlugin
 	}
 
 	/**
-	 * Triggered when Joomla is loading content. Used to load the Engage configuration.
+	 * Triggered when Joomla is loading content. Used to load the Social Magick configuration.
 	 *
 	 * This is used for both articles and article categories.
 	 *
@@ -392,12 +392,26 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * @param   mixed        $params   Parameters for the content being rendered
 	 * @param   int|null     $page     Page number in multi-page articles because whatever, mate.
 	 *
-	 * @return  string  We always return an empty string since we don't want to diosplay anything
+	 * @return  string  We always return an empty string since we don't want to display anything
 	 *
 	 * @since   1.0.0
 	 */
 	public function onContentBeforeDisplay(?string $context, &$row, &$params, ?int $page = 0): string
 	{
+		/**
+		 * When Joomla is rendering an article in a Newsflash module it uses the same context as rendering an article
+		 * through com_content (com_content.article). However, we do NOT want the newsflash articles to override the
+		 * Social Magick settings!
+		 *
+		 * This is an ugly hack around this problem. It's based on the observation that the newsflash module is passing
+		 * its own module options in the $params parameter to this event. As a result it has the `moduleclass_sfx` key
+		 * defined, whereas this key does not exist when rendering an article through com_content.
+		 */
+		if (($params instanceof \Joomla\Registry\Registry) && $params->exists('moduleclass_sfx'))
+		{
+			return '';
+		}
+
 		if (!in_array($context, ['com_content.article', 'com_content.category', 'com_content.categories']))
 		{
 			return '';

@@ -17,10 +17,11 @@
 	],
 	"require": {
 		"php": "^7.2",
-		"ext-fileinfo": "*",
 		"knplabs/github-api": "^2.0",
 		"php-http/guzzle6-adapter": "^1.1",
-		"czproject/git-php": "^3.10.0"
+		"czproject/git-php": "^3.10.0",
+		"ext-fileinfo": "*",
+		"ext-json": "*"
 	},
 	"suggest": {
 		"ext-imagick": "*",
