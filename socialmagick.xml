@@ -10,7 +10,7 @@
 <extension version="3.9.0" type="plugin" group="system" method="upgrade">
     <name>PLG_SYSTEM_SOCIALMAGICK</name>
     <version>1.0.0.b4</version>
-    <creationDate>2021-05-08</creationDate>
+    <creationDate>2021-09-09</creationDate>
 
     <author>Lucid Fox</author>
     <authorEmail>hello@lucid-fox.com</authorEmail>
