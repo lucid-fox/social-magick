@@ -1,3 +1,7 @@
+# Social Magick 1.0.0
+
+* Fix: use `HTMLHelper::cleanImage` on Joomla 4
+
 # Social Magick 1.0.0.b5
 
 * Fix: Using a newsflash module on a page would override Social Magick  (gh-31) 

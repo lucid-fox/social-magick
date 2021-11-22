@@ -14,6 +14,7 @@ namespace LucidFox\SocialMagick;
 defined('_JEXEC') || die();
 
 use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\HTML\HTMLHelper;
 
 /**
  * An image renderer using the GD library
@@ -63,13 +64,13 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		// Get the base image (resized image file or solid color image)
 		if ($template['base-image'])
 		{
-			// So, Joomla 4 adds some crap to the image. Let's fix that.
+			// Joomla 4 append infomration to the image after either a question mark OR a hash sign. Let's fix that.
 			$baseImage       = $template['base-image'];
-			$questionMarkPos = strrpos($baseImage, '?');
 
-			if ($questionMarkPos !== false)
+			if (version_compare(JVERSION, '4.0.0', 'ge'))
 			{
-				$baseImage = substr($baseImage, 0, $questionMarkPos);
+				$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
+				$baseImage = $imageInfo->url;
 			}
 
 			if (!@file_exists($baseImage))

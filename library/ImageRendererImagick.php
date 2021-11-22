@@ -16,6 +16,7 @@ use Imagick;
 use ImagickDraw;
 use ImagickPixel;
 use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\HTML\HTMLHelper;
 
 defined('_JEXEC') || die();
 
@@ -56,11 +57,11 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 		{
 			// So, Joomla 4 adds some crap to the image. Let's fix that.
 			$baseImage       = $template['base-image'];
-			$questionMarkPos = strrpos($baseImage, '?');
 
-			if ($questionMarkPos !== false)
+			if (version_compare(JVERSION, '4.0.0', 'ge'))
 			{
-				$baseImage = substr($baseImage, 0, $questionMarkPos);
+				$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
+				$baseImage = $imageInfo->url;
 			}
 
 			if (!@file_exists($baseImage))
