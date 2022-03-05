@@ -150,9 +150,9 @@ JSON;
 			return false;
 		}
 
-		if (version_compare(JVERSION, '4.0.999', 'gt'))
+		if (version_compare(JVERSION, '4.999.999', 'gt'))
 		{
-			JLog::add('This plugin is not compatible with Joomla 4.1 or later.', JLog::WARNING, 'jerror');
+			JLog::add('This plugin is not compatible with Joomla 5.x or later.', JLog::WARNING, 'jerror');
 
 			return false;
 		}
