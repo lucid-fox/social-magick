@@ -21,10 +21,11 @@
 		"ext-json": "*"
 	},
 	"require-dev": {
-		"czproject/git-php": "^4.0.0",
+		"php-http/guzzle6-adapter": "^2.0",
+		"nyholm/psr7": "^1.0",
 		"knplabs/github-api": "^3.0",
-		"symfony/http-client": "^5.0.0",
-		"nyholm/psr7": "^1.4.1"
+		"czproject/git-php": "^3.10.0",
+		"composer/ca-bundle": "^1.2"
 	},
 	"suggest": {
 		"ext-imagick": "*",

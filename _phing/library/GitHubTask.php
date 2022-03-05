@@ -13,6 +13,7 @@
  * @license   GNU General Public License version 3, or later
  */
 
+use Github\AuthMethod;
 use Github\Client;
 
 if (!class_exists('Github\\Client'))
@@ -145,6 +146,6 @@ abstract class GitHubTask extends Task
 			throw new RuntimeException('You need to provide your GitHub token.');
 		}
 
-		$this->client->authenticate($this->token, null, Client::AUTH_HTTP_TOKEN);
+		$this->client->authenticate($this->token, null, AuthMethod::ACCESS_TOKEN);
 	}
 }
