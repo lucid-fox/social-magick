@@ -286,10 +286,23 @@ class plgSystemSocialmagick extends CMSPlugin
 		// Get the menu item parameters
 		$params = ParametersRetriever::getMenuParameters($currentItem->id, $currentItem);
 
-		// Apply core content settings overrides, if applicable
-		if (($currentItem->query['option'] ?? '') == 'com_content')
+		/**
+		 * In Joomla 4 when you access a /component/whatever URL you have the ItemID for the home page as the active
+		 * item BUT the option parameter in the application is different. Let's detect that and get out if that's the
+		 * case.
+		 */
+		$menuOption    = $currentItem->query['option']  ?? '';
+		$currentOption = $this->app->input->getCmd('option', $menuOption);
+
+		if (!empty($menuOption) && ($menuOption !== $currentOption))
 		{
-			$task        = $currentItem->query['task'] ?? '';
+			$menuOption = $currentOption;
+		}
+
+		// Apply core content settings overrides, if applicable
+		if ($menuOption == 'com_content')
+		{
+			$task        = $this->app->input->getCmd('task', $currentItem->query['task'] ?? '');
 			$defaultView = '';
 
 			if (strpos($task, '.') !== false)

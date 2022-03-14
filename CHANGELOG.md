@@ -1,3 +1,7 @@
+# Social Magick 1.0.1
+
+* Fix: workaround for Joomla 4 links without an Item ID (e.g. /component/something)
+
 # Social Magick 1.0.0
 
 * Fix: allow installation on Joomla 4.1
