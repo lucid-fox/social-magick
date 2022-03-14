@@ -17,19 +17,6 @@ use Joomla\CMS\Log\Log as JLog;
 
 class plgSystemSocialmagickInstallerScript
 {
-	/**
-	 * Obsolete files and folders to remove. Use path names relative to the site's root.
-	 *
-	 * @var   array
-	 * @since 1.0.0
-	 */
-	protected $removeFiles = [
-		'files'   => [
-		],
-		'folders' => [
-		],
-	];
-
 	protected $defaultSettingsJson = <<< JSON
 {
 	"og-templates": {
@@ -123,46 +110,6 @@ class plgSystemSocialmagickInstallerScript
 }
 JSON;
 
-	protected $newInstallation = false;
-
-	/**
-	 * Runs before Joomla has the chance to install the plugin
-	 *
-	 * @param   string         $route
-	 * @param   PluginAdapter  $adapter
-	 *
-	 * @return  bool
-	 * @since   1.0.0
-	 */
-	public function preflight($route, $adapter)
-	{
-		if (version_compare(PHP_VERSION, '7.2.0', 'lt'))
-		{
-			JLog::add('You need PHP 7.2.0 or higher to install this plugin.', JLog::WARNING, 'jerror');
-
-			return false;
-		}
-
-		if (version_compare(JVERSION, '3.9.0', 'lt'))
-		{
-			JLog::add('You need Joomla 3.9 to install this plugin.', JLog::WARNING, 'jerror');
-
-			return false;
-		}
-
-		if (version_compare(JVERSION, '4.999.999', 'gt'))
-		{
-			JLog::add('This plugin is not compatible with Joomla 5.x or later.', JLog::WARNING, 'jerror');
-
-			return false;
-		}
-
-		// Clear op-code caches to prevent any cached code issues
-		$this->clearOpcodeCaches();
-
-		return true;
-	}
-
 	/**
 	 * Runs after install, update or discover_update. In other words, it executes after Joomla! has finished installing
 	 * or updating your plugin. This is the last chance you've got to perform any additional installations, clean-up,
@@ -177,88 +124,10 @@ JSON;
 	 */
 	public function postflight($type, $adapter)
 	{
-		// Is this a breand new installation?
-		$this->newInstallation = in_array($type, ['install', 'discover', 'discover_install', 'discover_update']);
-
-		// Remove obsolete files and folders on update
-		if (!$this->newInstallation)
-		{
-			$this->removeFilesAndFolders($this->removeFiles);
-		}
-
 		// Apply default plugin settings on brand new installation
-		if ($this->newInstallation)
+		if (in_array($type, ['install', 'discover', 'discover_install', 'discover_update']))
 		{
 			$this->applyDefaultSettings();
-		}
-
-		// Clear the opcode caches again - in case someone accessed the extension while the files were being upgraded.
-		$this->clearOpcodeCaches();
-	}
-
-	/**
-	 * Clear PHP opcode caches
-	 *
-	 * @return  void
-	 * @since   1.0.0
-	 */
-	protected function clearOpcodeCaches()
-	{
-		// Always reset the OPcache if it's enabled. Otherwise there's a good chance the server will not know we are
-		// replacing .php scripts. This is a major concern since PHP 5.5 included and enabled OPcache by default.
-		if (function_exists('opcache_reset'))
-		{
-			/** @noinspection PhpComposerExtensionStubsInspection */
-			opcache_reset();
-		}
-		// Also do that for APC cache
-		elseif (function_exists('apc_clear_cache'))
-		{
-			/** @noinspection PhpComposerExtensionStubsInspection */
-			@apc_clear_cache();
-		}
-	}
-
-	/**
-	 * Removes obsolete files and folders
-	 *
-	 * @param   array  $removeList  The files and directories to remove
-	 *
-	 * @return  void
-	 * @since   1.0.0
-	 */
-	private function removeFilesAndFolders($removeList)
-	{
-		// Remove files
-		if (isset($removeList['files']) && !empty($removeList['files']))
-		{
-			foreach ($removeList['files'] as $file)
-			{
-				$f = JPATH_ROOT . '/' . $file;
-
-				if (!is_file($f))
-				{
-					continue;
-				}
-
-				File::delete($f);
-			}
-		}
-
-		// Remove folders
-		if (isset($removeList['folders']) && !empty($removeList['folders']))
-		{
-			foreach ($removeList['folders'] as $folder)
-			{
-				$f = JPATH_ROOT . '/' . $folder;
-
-				if (!is_dir($f))
-				{
-					continue;
-				}
-
-				Folder::delete($f);
-			}
 		}
 	}
 
