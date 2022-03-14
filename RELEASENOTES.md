@@ -1,4 +1,4 @@
-Welcome to the fourth public beta of Social Magick! 🎉
+Welcome to Social Magick!
 
 This plugin automatically generates Open Graph images for your site's pages. These images are used when sharing a link to your site on social media (e.g. Facebook, Twitter, …) and chat applications (e.g. Slack, …). 
 
@@ -8,8 +8,8 @@ Your templates can use an image as well. It can be the category image; the artic
 
 ### Requirements
 
-* Joomla 3.9, 3.10 or 4.0.
-* PHP 7.2.
+* Joomla 3.9, 3.10, 4.0 or 4.1.
+* PHP 7.2, 7.3, 7.4, 8.0 or 8.1.
 * The PHP `gd` or `imagick` extension installed and enabled.
 
 ### Quick start
@@ -25,9 +25,3 @@ Your templates can use an image as well. It can be the category image; the artic
 If you have menu items with core content (Joomla articles) categories and articles which make use of images you can select the Overlay template. You will need to set the “Extra image source” option to “Intro image” or “Full Article image”, depending on which image you want to use.
 
 The templates provided are meant as examples; while you are welcome to use them on your live site, you can also replace the template images with ones that do not have the Social Magick watermark.
-
-### Beta software
-
-This is the _public beta_ version of this plugin. The main features are already there but we have not finished writing the documentation just yet. 
-
-While we have done fairly extensive testing and we even use it on production sites please bear in mind that there might be some rough spots. If you find something is not quite right please file a GitHub issue and try to be as descriptive as possible. We promise that we'll eventually look into it but kindly note that it might take a while. We ask for your understanding.
