@@ -14,10 +14,13 @@ use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Document\HtmlDocument;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
+use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\CMS\Menu\MenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Table\Table;
+use Joomla\CMS\User\UserHelper;
 use LucidFox\SocialMagick\ImageGenerator;
 use LucidFox\SocialMagick\ParametersRetriever;
 
@@ -60,10 +63,19 @@ class plgSystemSocialmagick extends CMSPlugin
 	private $category = '';
 
 	/**
+	 * The placeholder variable to be replaced by the image link when Debug Link is enabled.
+	 *
+	 * @var  string
+	 */
+	private $debugLinkPlaceholder = '';
+
+	/**
 	 * plgSystemSocialmagick constructor.
 	 *
 	 * @param   mixed  $subject  The event or plugin dispatcher
 	 * @param   array  $config   Configuration parameters
+	 *
+	 * @since   1.0.0
 	 */
 	public function __construct(&$subject, $config = [])
 	{
@@ -130,6 +142,7 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * @param   object        $data     Data being saved (Joomla 4)
 	 *
 	 * @return  bool
+	 * @since   1.0.0
 	 */
 	public function onContentBeforeSave(?string $context, $table, $isNew = false, $data = null): bool
 	{
@@ -182,6 +195,7 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * @param   object       $data     Data being saved
 	 *
 	 * @return  bool
+	 * @since   1.0.0
 	 */
 	public function onContentPrepareData(?string $context, &$data)
 	{
@@ -451,17 +465,43 @@ class plgSystemSocialmagick extends CMSPlugin
 			$this->article = $row->id;
 		}
 
+		// Add the debug link if necessary
+		if ($this->params->get('debuglink', 0) == 1)
+		{
+			return $this->getDebugLinkPlaceholder();
+		}
+
 		return '';
 	}
 
+	/**
+	 * Runs after rendering the document but before outputting it to the browser.
+	 *
+	 * Used to add the OpenGraph declaration to the document head and applying the debug image link.
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
 	public function onAfterRender(): void
 	{
 		if ($this->params->get('add_og_declaration', '1') == 1)
 		{
 			$this->addOgPrefixToHtmlDocument();
 		}
+
+		if ($this->params->get('debuglink', 0) == 1)
+		{
+			$this->replaceDebugImagePlaceholder();
+		}
+
 	}
 
+	/**
+	 * AJAX handler
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
 	public function onAjaxSocialmagick()
 	{
 		$key     = trim($this->params->get('cron_url_key', ''));
@@ -742,6 +782,52 @@ class plgSystemSocialmagick extends CMSPlugin
 	}
 
 	/**
+	 * Replace the debug image placeholder with a link to the OpenGraph image.
+	 *
+	 * @return  void
+	 * @since   1.0.0
+	 */
+	private function replaceDebugImagePlaceholder(): void
+	{
+		// Make sure I am in the front-end and I'm doing HTML output
+		/** @var SiteApplication $app */
+		$app = $this->app;
+
+		if (!is_object($app) || !($app instanceof SiteApplication))
+		{
+			return;
+		}
+
+		try
+		{
+			if ($this->app->getDocument()->getType() != 'html')
+			{
+				return;
+			}
+		}
+		catch (Throwable $e)
+		{
+			return;
+		}
+
+		$imageLink = $this->app->getDocument()->getMetaData('og:image') ?: $this->app->getDocument()->getMetaData('twitter:image') ?: '';
+
+		$this->loadLanguage();
+
+		$message = Text::_('PLG_SYSTEM_SOCIALMAGICK_DEBUGLINK_MESSAGE');
+
+		if ($message == 'PLG_SYSTEM_SOCIALMAGICK_DEBUGLINK_MESSAGE')
+		{
+			$message = "<a href=\"%s\" target=\"_blank\">Preview OpenGraph Image</a>";
+		}
+
+		$message = $imageLink ? sprintf($message, $imageLink) : '';
+
+		$app->setBody(str_replace($this->getDebugLinkPlaceholder(), $message, $app->getBody()));
+	}
+
+
+	/**
 	 * Generate (if necessary) and apply the Open Graph image
 	 *
 	 * @param   array  $params  Applicable menu parameters, with any overrides already taken into account
@@ -780,20 +866,28 @@ class plgSystemSocialmagick extends CMSPlugin
 		// Get the extra image location
 		$extraImage = $this->getExtraImage($imageSource, $imageField);
 
-		if (!is_null($extraImage))
+		// So, Joomla 4 adds some meta information to the image. Let's fix that.
+		if (!empty($extraImage))
 		{
-			// So, Joomla 4 adds some crap to the image. Let's fix that.
-			$questionMarkPos = strrpos($extraImage, '?');
-
-			if ($questionMarkPos !== false)
+			if (version_compare(JVERSION, '3.999.999', 'gt') && method_exists(HTMLHelper::class, 'cleanImageURL'))
 			{
-				$extraImage = substr($extraImage, 0, $questionMarkPos);
+				$extraImage = HTMLHelper::cleanImageURL($extraImage)->url ?? '';
 			}
-
-			// Is this an absolute path?
-			if (@file_exists(JPATH_ROOT . '/' . $extraImage))
+			else
 			{
-				$extraImage = JPATH_ROOT . '/' . $extraImage;
+				// So, Joomla 4 adds some crap to the image. Let's fix that.
+				$questionMarkPos = strrpos($extraImage, '?');
+
+				if ($questionMarkPos !== false)
+				{
+					$extraImage = substr($extraImage, 0, $questionMarkPos);
+				}
+
+				// Is this an absolute path?
+				if (@file_exists(JPATH_ROOT . '/' . $extraImage))
+				{
+					$extraImage = JPATH_ROOT . '/' . $extraImage;
+				}
 			}
 		}
 
@@ -948,5 +1042,23 @@ class plgSystemSocialmagick extends CMSPlugin
 		}
 
 		$doc->setMetaData($name, $value, $attribute);
+	}
+
+	/**
+	 * Get a random, unique placeholder for the debug OpenGraph image link
+	 *
+	 * @return  string
+	 * @since   1.0.0
+	 */
+	private function getDebugLinkPlaceholder(): string
+	{
+		if (!empty($this->debugLinkPlaceholder))
+		{
+			return $this->debugLinkPlaceholder;
+		}
+
+		$this->debugLinkPlaceholder = '{' . UserHelper::genRandomPassword(32) . '}';
+
+		return $this->debugLinkPlaceholder;
 	}
 }

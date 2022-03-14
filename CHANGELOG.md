@@ -1,6 +1,7 @@
 # Social Magick 1.0.1
 
 * Fix: workaround for Joomla 4 links without an Item ID (e.g. /component/something)
+* Fix: Joomla 4, cannot get the intro or full image, Joomla changed the internal structure of the image URLs again.
 
 # Social Magick 1.0.0
 
