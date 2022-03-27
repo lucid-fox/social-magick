@@ -107,6 +107,7 @@
                 <option value="intro">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_INTRO</option>
                 <option value="fulltext">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_FULLTEXT</option>
                 <option value="custom">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_CUSTOMFIELD</option>
+                <option value="static">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_STATIC</option>
             </field>
 
             <field
@@ -116,6 +117,16 @@
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_DESC"
                     filter="no_html"
                     showon="category_override:1[AND]category_image_source:custom[AND]category_generate_images:1"
+            />
+
+            <field
+                    name="category_static_image"
+                    type="media"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_STATIC_IMAGE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_STATIC_IMAGE_DESC"
+                    hide_none="1"
+                    default=""
+                    showon="category_override:1[AND]category_image_source:static[AND]category_generate_images:1"
             />
 
             <field

@@ -49,6 +49,7 @@ abstract class ParametersRetriever
 		'og_description_custom' => '',
 		'og_url'                => '-1',
 		'og_site_name'          => '-1',
+		'static_image'          => '',
 		'twitter_card'          => '-1',
 		'twitter_site'          => '',
 		'twitter_creator'       => '',

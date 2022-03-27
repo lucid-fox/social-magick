@@ -605,12 +605,13 @@ class plgSystemSocialmagick extends CMSPlugin
 	 *
 	 * @param   string|null  $imageSource  The image source type: `none`, `intro`, `fulltext`, `custom`.
 	 * @param   string|null  $imageField   The name of the Joomla! Custom Field when `$imageSource` is `custom`.
+	 * @param   string|null  $staticImage  A static image definition
 	 *
 	 * @return  string|null  The (hopefully relative) image path. NULL if no image is found or applicable.
 	 *
 	 * @since   1.0.0
 	 */
-	private function getExtraImage(?string $imageSource, ?string $imageField): ?string
+	private function getExtraImage(?string $imageSource, ?string $imageField, ?string $staticImage): ?string
 	{
 		$customImage = trim(@$this->app->socialMagickImage ?? '');
 
@@ -660,6 +661,10 @@ class plgSystemSocialmagick extends CMSPlugin
 			default:
 			case 'none':
 				return null;
+				break;
+
+			case 'static':
+				return $staticImage;
 				break;
 
 			case 'intro':
@@ -849,6 +854,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		$useTitle    = $params['use_title'] == 1;
 		$imageSource = $params['image_source'];
 		$imageField  = $params['image_field'];
+		$staticImage = $params['static_image'] ?: '';
 		$overrideOG  = $params['override_og'] == 1;
 
 		// Get the text to render.
@@ -864,7 +870,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		}
 
 		// Get the extra image location
-		$extraImage = $this->getExtraImage($imageSource, $imageField);
+		$extraImage = $this->getExtraImage($imageSource, $imageField, $staticImage);
 
 		// So, Joomla 4 adds some meta information to the image. Let's fix that.
 		if (!empty($extraImage))
@@ -873,9 +879,9 @@ class plgSystemSocialmagick extends CMSPlugin
 			{
 				$extraImage = HTMLHelper::cleanImageURL($extraImage)->url ?? '';
 			}
-			else
+			elseif (version_compare(JVERSION, '3.999.999', 'gt'))
 			{
-				// So, Joomla 4 adds some crap to the image. Let's fix that.
+				// Early Joomla 4 alphas and betas didn't have cleanImageURL and used a different format.
 				$questionMarkPos = strrpos($extraImage, '?');
 
 				if ($questionMarkPos !== false)

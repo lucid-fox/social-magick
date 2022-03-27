@@ -20,7 +20,7 @@
 
             <field
                     name="generate_images"
-                    type="fancyradio"
+                    type="radio"
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_GENERATE_IMAGES_DESC"
                     class="btn-group btn-group-yesno"
@@ -89,6 +89,7 @@
                 <option value="intro">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_INTRO</option>
                 <option value="fulltext">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_FULLTEXT</option>
                 <option value="custom">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_CUSTOMFIELD</option>
+                <option value="static">PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_SOURCE_OPT_STATIC</option>
             </field>
 
             <field
@@ -98,6 +99,16 @@
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_IMAGE_FIELD_DESC"
                     filter="no_html"
                     showon="image_source:custom[AND]generate_images!:0"
+            />
+
+            <field
+                    name="static_image"
+                    type="media"
+                    label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_STATIC_IMAGE_LABEL"
+                    description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_STATIC_IMAGE_DESC"
+                    hide_none="1"
+                    default=""
+                    showon="image_source:static[AND]generate_images!:0"
             />
 
             <field
