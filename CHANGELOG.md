@@ -1,4 +1,5 @@
 # Social Magick 1.0.2
+
 + Option to use a static image as the overlay source (gh-35)
 
 # Social Magick 1.0.1
