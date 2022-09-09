@@ -499,7 +499,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 *
 	 * @since   1.0.0
 	 */
-	private function renderText(string $text, string $color, string $alignment, string $font, int $fontSize, int $maxWidth, int $maxHeight, bool $centerTextVertically, float $lineSpacing = 1.35)
+	private function renderText(string $text, string $color, string $alignment, string $font, float $fontSize, int $maxWidth, int $maxHeight, bool $centerTextVertically, float $lineSpacing = 1.35)
 	{
 		// Pre-process text
 		$text = $this->preProcessText($text);
@@ -706,7 +706,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 *
 	 * @since   1.0.0
 	 */
-	private function lineSize(string $text, int $size, string $font): array
+	private function lineSize(string $text, float $size, string $font): array
 	{
 		$boundingBox = imagettfbbox($size, 0, $font, $text);
 
@@ -729,7 +729,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 *
 	 * @since   1.0.0
 	 */
-	private function toLines(string $text, int $size, string $font, int $maxWidth): array
+	private function toLines(string $text, float $size, string $font, int $maxWidth): array
 	{
 		// Is the line narrow enough to call it a day?
 		$lineDimensions = $this->lineSize($text, $size, $font);
