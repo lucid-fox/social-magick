@@ -368,7 +368,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		}
 
 		// Resize the image
-		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
+		$newImage = imagecreatetruecolor((int) $resizeWidth, (int) $resizeHeight);
 		imagealphablending($newImage, false);
 		$transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
 		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
@@ -379,10 +379,10 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		unset($newImage);
 
 		// Crop the image
-		$newImage = imagecreatetruecolor($resizeWidth, $resizeHeight);
+		$newImage = imagecreatetruecolor((int) $resizeWidth, (int) $resizeHeight);
 		imagealphablending($newImage, false);
 		$transparent = imagecolorallocatealpha($newImage, 0, 0, 0, 127);
-		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
+		imagefilledrectangle($newImage, 0, 0, (int) $resizeWidth, (int) $resizeHeight, $transparent);
 
 		switch ($focus)
 		{
@@ -392,19 +392,19 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 
 			default:
 			case 'center':
-				imagecopyresampled($newImage, $image, 0, 0, abs($resizeWidth - $newWidth) / 2, abs($resizeHeight - $newHeight) / 2, $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, (int) (abs($resizeWidth - $newWidth) / 2), (int) (abs($resizeHeight - $newHeight) / 2), $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 
 			case 'northeast':
-				imagecopyresampled($newImage, $image, 0, 0, abs($resizeWidth - $newWidth), 0, $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, (int) abs($resizeWidth - $newWidth), 0, $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 
 			case 'southwest':
-				imagecopyresampled($newImage, $image, 0, 0, 0, abs($resizeHeight - $newHeight), $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, 0, (int) abs($resizeHeight - $newHeight), $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 
 			case 'southeast':
-				imagecopyresampled($newImage, $image, 0, 0, abs($resizeWidth - $newWidth), abs($resizeHeight - $newHeight), $newWidth, $newHeight, $newWidth, $newHeight);
+				imagecopyresampled($newImage, $image, 0, 0, (int) abs($resizeWidth - $newWidth), (int) abs($resizeHeight - $newHeight), $newWidth, $newHeight, $newWidth, $newHeight);
 				break;
 		}
 
