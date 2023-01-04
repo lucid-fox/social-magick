@@ -3,7 +3,7 @@
  * Social Magick – Automatically generate Open Graph images on your site
  *
  * @package   socialmagick
- * @copyright Copyright 2021-2021 Lucid Fox
+ * @copyright Copyright 2021-2023 Lucid Fox
  * @license   GNU GPL v3 or later
  */
 
@@ -607,7 +607,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			$x1 = 50 + $line['x'];
 			$y1 = 50 + $line['y'] + $centerYOffset;
 
-			imagettftext($image, $fontSize, 0, $x1, $y1 + $yOffset, $colorResource, $font, $line['text']);
+			imagettftext($image, $fontSize, 0, (int) $x1, (int) $y1 + (int) $yOffset, $colorResource, $font, $line['text']);
 
 			if ($this->debugText)
 			{

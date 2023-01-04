@@ -3,7 +3,7 @@
   ~ Social Magick – Automatically generate Open Graph images on your site
   ~
   ~ @package   socialmagick
-  ~ @copyright Copyright 2021-2021 Lucid Fox
+  ~ @copyright Copyright 2021-2023 Lucid Fox
   ~ @license   GNU GPL v3 or later
   -->
 
@@ -37,7 +37,7 @@
         <tags>
             <tag>stable</tag>
         </tags>
-        <targetplatform name="joomla" version="((3\.9)|(3\.10)|(4\.0)|(4\.1))"/>
+        <targetplatform name="joomla" version="((3\.9)|(3\.10)|(4\.0)|(4\.1)|(4\.2)|(4\.3))"/>
         <php_minimum>7.2</php_minimum>
         <supported_databases mysql="5.5.3" mariadb="10.1" />
     </update>
