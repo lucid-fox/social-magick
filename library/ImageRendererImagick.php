@@ -217,29 +217,29 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 			}
 		}
 
-		$image->resizeImage($resize_w, $resize_h, Imagick::FILTER_LANCZOS, 0.9);
+		$image->resizeImage((int) $resize_w, (int)$resize_h, Imagick::FILTER_LANCZOS, 0.9);
 
 		switch ($focus)
 		{
 			case 'northwest':
-				$image->cropImage($new_w, $new_h, 0, 0);
+				$image->cropImage((int) $new_w, (int) $new_h, 0, 0);
 				break;
 
 			default:
 			case 'center':
-				$image->cropImage($new_w, $new_h, ($resize_w - $new_w) / 2, ($resize_h - $new_h) / 2);
+				$image->cropImage((int) $new_w, (int) $new_h, (int) (($resize_w - $new_w) / 2), (int) (($resize_h - $new_h) / 2));
 				break;
 
 			case 'northeast':
-				$image->cropImage($new_w, $new_h, $resize_w - $new_w, 0);
+				$image->cropImage((int) $new_w, (int) $new_h, (int) ($resize_w - $new_w), 0);
 				break;
 
 			case 'southwest':
-				$image->cropImage($new_w, $new_h, 0, $resize_h - $new_h);
+				$image->cropImage((int) $new_w, (int) $new_h, 0, (int) ($resize_h - $new_h));
 				break;
 
 			case 'southeast':
-				$image->cropImage($new_w, $new_h, $resize_w - $new_w, $resize_h - $new_h);
+				$image->cropImage((int) $new_w, (int) $new_h, (int) ($resize_w - $new_w), (int) ($resize_h - $new_h));
 				break;
 		}
 
