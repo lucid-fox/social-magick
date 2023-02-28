@@ -1,6 +1,7 @@
 # Social Magick 1.0.3
 
 * Fix: ImageRendererGD throws a PHP 8 notice
+* Fix: ImageRendererImagick throws a PHP 8 notice
 
 # Social Magick 1.0.2
 

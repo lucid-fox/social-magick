@@ -100,8 +100,9 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 				$extraCanvas->compositeImage(
 					$tmpImg,
 					Imagick::COMPOSITE_OVER,
-					$imgX,
-					$imgY);
+					(int) $imgX,
+					(int) $imgY
+				);
 			}
 			else
 			{
@@ -120,13 +121,13 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 				$extraCanvas->compositeImage(
 					$image,
 					Imagick::COMPOSITE_OVER,
-					-$imgX,
-					-$imgY);
+					-((int) $imgX),
+					-((int) $imgY));
 				$image->compositeImage(
 					$extraCanvas,
 					Imagick::COMPOSITE_COPY,
-					$imgX,
-					$imgY);
+					(int) $imgX,
+					(int) $imgY);
 
 			}
 			elseif ($template['image-z'] == 'over')
@@ -134,8 +135,8 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 				$image->compositeImage(
 					$extraCanvas,
 					Imagick::COMPOSITE_DEFAULT,
-					$imgX,
-					$imgY);
+					(int) $imgX,
+					(int) $imgY);
 			}
 
 			$extraCanvas->destroy();
@@ -357,8 +358,8 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 			$image->compositeImage(
 				$debugImage,
 				Imagick::COMPOSITE_OVER,
-				$xPos,
-				$yPos
+				(int) $xPos,
+				(int) $yPos
 			);
 			$debugImage->destroy();
 		}
@@ -367,8 +368,8 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 		$image->compositeImage(
 			$theText,
 			Imagick::COMPOSITE_DEFAULT,
-			$xPos,
-			$yPos);
+			(int) $xPos,
+			(int) $yPos);
 
 		$theText->destroy();
 	}
