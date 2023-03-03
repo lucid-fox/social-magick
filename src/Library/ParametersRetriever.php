@@ -7,18 +7,14 @@
  * @license   GNU GPL v3 or later
  */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
-use CategoriesModelCategory;
-use ContentModelArticle;
 use Exception;
 use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\CMS\Menu\MenuItem;
 use Joomla\CMS\MVC\Factory\MVCFactoryInterface;
-use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\CMS\Table\Table;
 use Joomla\Component\Categories\Administrator\Model\CategoryModel;
 use Joomla\Component\Content\Site\Model\ArticleModel;
 use Joomla\Registry\Registry;
@@ -30,10 +26,9 @@ abstract class ParametersRetriever
 	/**
 	 * Default Social Magick parameters for menu items, categories and articles
 	 *
-	 * @var   array
 	 * @since 1.0.0
 	 */
-	private static $defaultParameters = [
+	private static array $defaultParameters = [
 		'override'              => '0',
 		'generate_images'       => '-1',
 		'template'              => '',
@@ -62,31 +57,28 @@ abstract class ParametersRetriever
 	 * @var   array[]
 	 * @since 1.0.0
 	 */
-	private static $menuParameters = [];
+	private static array $menuParameters = [];
 
 	/**
 	 * Cached parameters per article ID
 	 *
-	 * @var   array
 	 * @since 1.0.0
 	 */
-	private static $articleParameters = [];
+	private static array $articleParameters = [];
 
 	/**
 	 * Cached parameters **FOR ARTICLES** per category ID
 	 *
-	 * @var   array
 	 * @since 1.0.0
 	 */
-	private static $categoryArticleParameters = [];
+	private static array $categoryArticleParameters = [];
 
 	/**
 	 * Cached parameters **FOR THE CATEGORY** per category ID
 	 *
-	 * @var   array
 	 * @since 1.0.0
 	 */
-	private static $categoryParameters = [];
+	private static array $categoryParameters = [];
 
 	/**
 	 * Article objects per article ID
@@ -115,7 +107,7 @@ abstract class ParametersRetriever
 	 * @throws  Exception
 	 * @since   1.0.0
 	 */
-	public static function getMenuParameters(int $id, ?MenuItem $menuItem = null)
+	public static function getMenuParameters(int $id, ?MenuItem $menuItem = null): array
 	{
 		// Return cached results quickly
 		if (isset(self::$menuParameters[$id]))
@@ -290,38 +282,26 @@ abstract class ParametersRetriever
 	 *
 	 * @param   int  $id  The article ID
 	 *
-	 * @return  ContentModelArticle|ArticleModel|null
+	 * @return  object|null
 	 *
 	 * @since   1.0.0
 	 */
-	public static function getArticleById(int $id)
+	public static function getArticleById(int $id): ?object
 	{
 		if (isset(self::$articlesById[$id]))
 		{
 			return self::$articlesById[$id];
 		}
 
-		/** @var ContentModelArticle|ArticleModel $model */
+		/** @var ArticleModel $model */
 		try
 		{
-			if (version_compare(JVERSION, '3.999.999', 'le'))
-			{
-				if (!class_exists('ContentModelArticle'))
-				{
-					BaseDatabaseModel::addIncludePath(JPATH_SITE . '/components/com_content/models');
-				}
-
-				$model = BaseDatabaseModel::getInstance('Article', 'ContentModel');
-			}
-			else
-			{
-				/** @var SiteApplication $app */
-				$app = Factory::getApplication();
-				/** @var MVCFactoryInterface $factory */
-				$factory = $app->bootComponent('com_content')->getMVCFactory();
-				/** @var ArticleModel $model */
-				$model = $factory->createModel('Article', 'Administrator');
-			}
+			/** @var SiteApplication $app */
+			$app = Factory::getApplication();
+			/** @var MVCFactoryInterface $factory */
+			$factory = $app->bootComponent('com_content')->getMVCFactory();
+			/** @var ArticleModel $model */
+			$model = $factory->createModel('Article', 'Administrator');
 
 			self::$articlesById[$id] = $model->getItem($id) ?: null;
 		}
@@ -338,11 +318,11 @@ abstract class ParametersRetriever
 	 *
 	 * @param   int  $id  The category ID
 	 *
-	 * @return  CategoriesModelCategory|CategoryModel|null
+	 * @return  object|null
 	 *
 	 * @since   1.0.0
 	 */
-	public static function getCategoryById(int $id)
+	public static function getCategoryById(int $id): ?object
 	{
 		if (isset(self::$categoriesById[$id]))
 		{
@@ -351,32 +331,12 @@ abstract class ParametersRetriever
 
 		try
 		{
-			if (version_compare(JVERSION, '3.999.999', 'le'))
-			{
-				if (!class_exists('CategoriesModelCategory'))
-				{
-					BaseDatabaseModel::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_categories/models');
-				}
-
-				if (!class_exists('CategoriesTableCategory'))
-				{
-					Table::addIncludePath(JPATH_ADMINISTRATOR . '/components/com_categories/tables');
-				}
-			}
-			if (version_compare(JVERSION, '3.999.999', 'le'))
-			{
-				/** @var CategoriesModelCategory $model */
-				$model = BaseDatabaseModel::getInstance('Category', 'CategoriesModel');
-			}
-			else
-			{
-				/** @var SiteApplication $app */
-				$app = Factory::getApplication();
-				/** @var MVCFactoryInterface $factory */
-				$factory = $app->bootComponent('com_categories')->getMVCFactory();
-				/** @var CategoryModel $model */
-				$model = $factory->createModel('Category', 'Administrator');
-			}
+			/** @var SiteApplication $app */
+			$app = Factory::getApplication();
+			/** @var MVCFactoryInterface $factory */
+			$factory = $app->bootComponent('com_categories')->getMVCFactory();
+			/** @var CategoryModel $model */
+			$model = $factory->createModel('Category', 'Administrator');
 
 			self::$categoriesById[$id] = $model->getItem($id) ?: null;
 		}
@@ -398,7 +358,7 @@ abstract class ParametersRetriever
 	 *
 	 * @since 1.0.0
 	 */
-	private static function getParamsFromRegistry(Registry $params, $namespace = 'socialmagick.'): array
+	private static function getParamsFromRegistry(Registry $params, string $namespace = 'socialmagick.'): array
 	{
 		$parsedParameters = [];
 
@@ -415,11 +375,11 @@ abstract class ParametersRetriever
 	 *
 	 * @param   int  $childId
 	 *
-	 * @return  CategoriesModelCategory|CategoryModel|null
+	 * @return  object|null
 	 *
 	 * @since   1.0.0
 	 */
-	private static function getParentCategory(int $childId)
+	private static function getParentCategory(int $childId): ?object
 	{
 		/** @var CategoryModel $childCategory */
 		$childCategory = self::getCategoryById($childId);

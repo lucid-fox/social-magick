@@ -9,14 +9,16 @@
 
 defined('_JEXEC') || die;
 
-use Joomla\CMS\Factory;
-use Joomla\CMS\Filesystem\File;
-use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Installer\Adapter\PluginAdapter;
-use Joomla\CMS\Log\Log as JLog;
+use Joomla\CMS\Installer\InstallerScript;
+use Joomla\Database\DatabaseDriver;
 
-class plgSystemSocialmagickInstallerScript
+class plgSystemSocialmagickInstallerScript extends InstallerScript
 {
+	protected $minimumJoomla = '4.2.0';
+
+	protected $minimumPhp = '7.4.0';
+
 	protected $defaultSettingsJson = <<< JSON
 {
 	"og-templates": {
@@ -124,23 +126,24 @@ JSON;
 	 */
 	public function postflight($type, $adapter)
 	{
-		// Apply default plugin settings on brand new installation
+		// Apply default plugin settings on brand-new installation
 		if (in_array($type, ['install', 'discover', 'discover_install', 'discover_update']))
 		{
-			$this->applyDefaultSettings();
+			$this->applyDefaultSettings($adapter->getParent()->getDbo());
 		}
 	}
 
 	/**
 	 * Apply the default plugin settings on new installation
 	 *
+	 * @param   DatabaseDriver  $db  The database driver
+	 *
 	 * @return  void
 	 * @since   1.0.0
 	 */
-	private function applyDefaultSettings()
+	private function applyDefaultSettings(DatabaseDriver $db)
 	{
-		$db       = Factory::getDbo();
-		$query    = $db->getQuery(true)
+		$query = $db->getQuery(true)
 			->update($db->qn('#__extensions'))
 			->set($db->qn('params') . ' = ' . $db->q($this->defaultSettingsJson))
 			->where($db->qn('type') . ' = ' . $db->q('plugin'))

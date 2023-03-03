@@ -7,7 +7,7 @@
  * @license   GNU GPL v3 or later
  */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 defined('_JEXEC') || die();
 
@@ -35,10 +35,9 @@ final class ImageGenerator
 	/**
 	 * Is this plugin in Development Mode? In this case the images are forcibly generated.
 	 *
-	 * @var   bool
 	 * @since 1.0.0
 	 */
-	private $devMode = false;
+	private bool $devMode = false;
 
 	/**
 	 * Open Graph image templates, parsed from the plugin options
@@ -46,7 +45,7 @@ final class ImageGenerator
 	 * @var   array
 	 * @since 1.0.0
 	 */
-	private $templates = [];
+	private array $templates = [];
 
 	/**
 	 * Path relative to the site's root where the generated images will be saved
@@ -54,7 +53,7 @@ final class ImageGenerator
 	 * @var   string
 	 * @since 1.0.0
 	 */
-	private $outputFolder = '';
+	private string $outputFolder = '';
 
 	/**
 	 * The image renderer we'll be using
@@ -62,7 +61,7 @@ final class ImageGenerator
 	 * @var   ImageRendererInterface
 	 * @since 1.0.0
 	 */
-	private $renderer;
+	private ImageRendererInterface $renderer;
 
 	/**
 	 * Number of subfolder levels for generated images
@@ -70,7 +69,7 @@ final class ImageGenerator
 	 * @var   int
 	 * @since 1.0.0
 	 */
-	private $folderLevels = 0;
+	private int $folderLevels = 0;
 
 	/**
 	 * Old image threshold, in days
@@ -78,15 +77,14 @@ final class ImageGenerator
 	 * @var   int
 	 * @since 1.0.0
 	 */
-	private $oldImageThreshold = 0;
+	private int $oldImageThreshold = 0;
 
 	/**
 	 * Should I delete old images if the image I am asked to generate already exists?
 	 *
-	 * @var   bool
 	 * @since 1.0.0
 	 */
-	private $autoDeleteOldImages = false;
+	private bool $autoDeleteOldImages = false;
 
 	/**
 	 * ImageGenerator constructor.

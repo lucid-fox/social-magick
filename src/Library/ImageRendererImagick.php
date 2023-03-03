@@ -10,7 +10,7 @@
 
 /** @noinspection PhpComposerExtensionStubsInspection */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 use Imagick;
 use ImagickDraw;
@@ -56,13 +56,10 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 		if ($template['base-image'])
 		{
 			// So, Joomla 4 adds some crap to the image. Let's fix that.
-			$baseImage       = $template['base-image'];
+			$baseImage = $template['base-image'];
 
-			if (version_compare(JVERSION, '4.0.0', 'ge'))
-			{
-				$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
-				$baseImage = $imageInfo->url;
-			}
+			$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
+			$baseImage = $imageInfo->url;
 
 			if (!@file_exists($baseImage))
 			{
@@ -217,7 +214,7 @@ class ImageRendererImagick extends ImageRendererAbstract implements ImageRendere
 			}
 		}
 
-		$image->resizeImage((int) $resize_w, (int)$resize_h, Imagick::FILTER_LANCZOS, 0.9);
+		$image->resizeImage((int) $resize_w, (int) $resize_h, Imagick::FILTER_LANCZOS, 0.9);
 
 		switch ($focus)
 		{

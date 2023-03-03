@@ -9,7 +9,7 @@
 
 /** @noinspection PhpComposerExtensionStubsInspection */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 defined('_JEXEC') || die();
 
@@ -49,9 +49,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			'imagecopyresampled',
 		];
 
-		return array_reduce($functions, function ($carry, $function) {
-			return $carry && function_exists($function);
-		}, true);
+		return array_reduce($functions, fn($carry, $function) => $carry && function_exists($function), true);
 	}
 
 	/** @inheritDoc */
@@ -65,13 +63,10 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		if ($template['base-image'])
 		{
 			// Joomla 4 append infomration to the image after either a question mark OR a hash sign. Let's fix that.
-			$baseImage       = $template['base-image'];
+			$baseImage = $template['base-image'];
 
-			if (version_compare(JVERSION, '4.0.0', 'ge'))
-			{
-				$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
-				$baseImage = $imageInfo->url;
-			}
+			$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
+			$baseImage = $imageInfo->url;
 
 			if (!@file_exists($baseImage))
 			{
@@ -490,9 +485,10 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 * @param   string  $color        The hex color to render it in.
 	 * @param   string  $alignment    Horizontal alignment: 'left', 'center', 'right'.
 	 * @param   string  $font         The font file to render it with.
-	 * @param   int     $fontSize     The font size, in points.
+	 * @param   float   $fontSize     The font size, in points.
 	 * @param   int     $maxWidth     Maximum text render width, in pixels.
 	 * @param   int     $maxHeight    Maximum text render height, in pixels.
+	 * @param   bool    $centerTextVertically
 	 * @param   float   $lineSpacing  Line spacing factor. 1.35 is what Imagick uses by default as far as I can tell.
 	 *
 	 * @return  array  [$image, $textWidth, $textHeight]  The width and height include the 50px margin on all sides
@@ -555,12 +551,8 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		$lines = $this->horizontalAlignLines($lines, $alignment, $maxWidth);
 
 		// Get the real width and height of the text
-		$textWidth  = array_reduce($lines, function (int $carry, array $line) {
-			return max($carry, $line['width']);
-		}, 0);
-		$textHeight = array_reduce($lines, function (int $carry, array $line) {
-			return max($carry, $line['y'] + $line['height']);
-		}, 0);
+		$textWidth  = array_reduce($lines, fn(int $carry, array $line) => max($carry, $line['width']), 0);
+		$textHeight = array_reduce($lines, fn(int $carry, array $line) => max($carry, $line['y'] + $line['height']), 0);
 
 		// Create a transparent image with the text dimensions
 		$image = imagecreatetruecolor($maxWidth + 100, $maxHeight + 100);
@@ -684,7 +676,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 *
 	 * @see     https://github.com/MattWilcox/Adaptive-Images/blob/master/adaptive-images.php#L109
 	 */
-	private function findSharp($intOrig, $intFinal)
+	private function findSharp(int $intOrig, int $intFinal): int
 	{
 		$intFinal = $intFinal * (750.0 / $intOrig);
 		$intA     = 52;
@@ -699,7 +691,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 * Returns the width and height of a line of text
 	 *
 	 * @param   string  $text  The text to render
-	 * @param   int     $size  Font size, in points
+	 * @param   float   $size  Font size, in points
 	 * @param   string  $font  Font file
 	 *
 	 * @return  array  [width, height]
@@ -721,7 +713,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 * Chop the string to lines which are rendered up to a given maximum width
 	 *
 	 * @param   string  $text      The text to chop
-	 * @param   int     $size      Font size, in points
+	 * @param   float   $size      Font size, in points
 	 * @param   string  $font      Font file
 	 * @param   int     $maxWidth  Maximum width for the rendered text, in pixels
 	 *
@@ -853,9 +845,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	private function applyLineSpacing(array $lines, float $lineSpacing): array
 	{
 		// Get the maximum line height
-		$maxHeight = array_reduce($lines, function (int $carry, array $line): int {
-			return max($carry, $line['height']);
-		}, 0);
+		$maxHeight = array_reduce($lines, fn(int $carry, array $line): int => max($carry, $line['height']), 0);
 
 		$lineHeight = (int) ceil($maxHeight * $lineSpacing);
 		$i          = -1;
@@ -880,8 +870,6 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 */
 	private function applyMaximumHeight(array $lines, int $maxHeight): array
 	{
-		return array_filter($lines, function (array $line) use ($maxHeight): bool {
-			return ($line['y'] + $line['height']) <= $maxHeight;
-		});
+		return array_filter($lines, fn(array $line): bool => ($line['y'] + $line['height']) <= $maxHeight);
 	}
 }

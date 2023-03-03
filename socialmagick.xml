@@ -7,7 +7,7 @@
   ~ @license   GNU GPL v3 or later
   -->
 
-<extension version="3.9.0" type="plugin" group="system" method="upgrade">
+<extension type="plugin" group="system" method="upgrade">
     <name>PLG_SYSTEM_SOCIALMAGICK</name>
     <version>1.0.2</version>
     <creationDate>2022-03-14</creationDate>
@@ -16,23 +16,23 @@
     <authorEmail>hello@lucid-fox.com</authorEmail>
     <authorUrl>https://lucid-fox.com</authorUrl>
 
-    <copyright>Copyright (c)2021 Lucid Fox</copyright>
+    <copyright>Copyright (c)2021-2023 Lucid Fox</copyright>
     <license>GNU General Public License version 3, or later</license>
 
     <description>PLG_SYSTEM_SOCIALMAGICK_XML_DESC</description>
+    <namespace path="src">LucidFox\Plugin\System\SocialMagick</namespace>
 
     <files>
-        <filename plugin="socialmagick">socialmagick.php</filename>
-
-        <filename>.htaccess</filename>
-        <filename>web.config</filename>
-
         <folder>fields</folder>
         <folder>fonts</folder>
         <folder>form</folder>
         <folder>images</folder>
-        <folder>library</folder>
+        <folder plugin="socialmagick">services</folder>
+        <folder>src</folder>
         <folder>sql</folder>
+
+        <filename>.htaccess</filename>
+        <filename>web.config</filename>
     </files>
 
     <languages folder="language">
@@ -41,7 +41,7 @@
     </languages>
 
     <config>
-        <fields name="params" addfieldpath="/plugins/system/socialmagick/fields">
+        <fields name="params" addfieldprefix="LucidFox\Plugin\System\SocialMagick\Field">
             <fieldset name="basic"
                       label="PLG_SYSTEM_SOCIALMAGICK_BASIC_FIELDSET_LABEL">
                 <field
@@ -51,7 +51,8 @@
 
                 <field
                         name="generate_images"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_GENERATE_IMAGES_LABEL"
                         description="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_GENERATE_IMAGES_DESC"
                         class="btn-group btn-group-yesno"
@@ -133,7 +134,8 @@
 
                         <field
                                 name="overlay_text"
-                                type="fancyradio"
+                                type="radio"
+                                layout="joomla.form.field.radio.switcher"
                                 label="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_OVERLAY_TEXT_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_FORM_PLUGIN_OVERLAY_TEXT_DESC"
                                 class="btn-group btn-group-yesno"
@@ -209,7 +211,8 @@
 
                         <field
                                 name="text-y-center"
-                                type="fancyradio"
+                                type="radio"
+                                layout="joomla.form.field.radio.switcher"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_CENTER_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_Y_CENTER_DESC"
                                 class="btn-group btn-group-yesno"
@@ -241,7 +244,8 @@
 
                         <field
                                 name="text-x-center"
-                                type="fancyradio"
+                                type="radio"
+                                layout="joomla.form.field.radio.switcher"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_CENTER_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXT_X_CENTER_DESC"
                                 class="btn-group btn-group-yesno"
@@ -273,7 +277,8 @@
 
                         <field
                                 name="use-article-image"
-                                type="fancyradio"
+                                type="radio"
+                                layout="joomla.form.field.radio.switcher"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_USE_ARTICLE_IMAGE_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_USE_ARTICLE_IMAGE_DESC"
                                 class="btn-group btn-group-yesno"
@@ -286,7 +291,8 @@
 
                         <field
                                 name="image-z"
-                                type="fancyradio"
+                                type="radio"
+                                layout="joomla.form.field.radio.switcher"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Z_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_Z_DESC"
                                 class="btn-group btn-group-yesno"
@@ -299,7 +305,8 @@
 
                         <field
                                 name="image-cover"
-                                type="fancyradio"
+                                type="radio"
+                                layout="joomla.form.field.radio.switcher"
                                 label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_COVER_LABEL"
                                 description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_IMAGE_COVER_DESC"
                                 class="btn-group btn-group-yesno"
@@ -402,7 +409,8 @@
 
                 <field
                         name="og_url"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_URL_LABEL"
                         description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_URL_DESC"
                         class="btn-group btn-group-yesno"
@@ -414,7 +422,8 @@
 
                 <field
                         name="og_site_name"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_SITE_NAME_LABEL"
                         description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_SITE_NAME_DESC"
                         class="btn-group btn-group-yesno"
@@ -484,7 +493,8 @@
 
                 <field
                         name="pseudo_cron"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_ADD_PSEUDO_CRON_LABEL"
                         description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_ADD_PSEUDO_CRON_DESC"
                         class="btn-group btn-group-yesno"
@@ -539,7 +549,8 @@
 
                 <field
                         name="add_og_declaration"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_ADD_OG_DECLARATION_LABEL"
                         description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_ADD_OG_DECLARATION_DESC"
                         class="btn-group btn-group-yesno"
@@ -562,7 +573,8 @@
 
                 <field
                         name="devmode"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEVMODE_LABEL"
                         class="btn-group btn-group-yesno"
                         default="0"
@@ -574,7 +586,8 @@
 
                 <field
                         name="textdebug"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXTDEBUG_LABEL"
                         description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_TEXTDEBUG_DESC"
                         class="btn-group btn-group-yesno"
@@ -586,7 +599,8 @@
 
                 <field
                         name="debuglink"
-                        type="fancyradio"
+                        type="radio"
+                        layout="joomla.form.field.radio.switcher"
                         label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEBUGLINK_LABEL"
                         description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_DEBUGLINK_DESC"
                         class="btn-group btn-group-yesno"

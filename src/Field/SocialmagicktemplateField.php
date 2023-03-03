@@ -7,13 +7,13 @@
  * @license   GNU GPL v3 or later
  */
 
+namespace LucidFox\Plugin\System\SocialMagick\Field;
+
 defined('_JEXEC') || die();
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Form\FormHelper;
+use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
-
-FormHelper::loadFieldClass('list');
 
 /**
  * Select a SocialMagick template
@@ -23,8 +23,16 @@ FormHelper::loadFieldClass('list');
  * @since        1.0.0
  * @noinspection PhpUnused
  */
-class JFormFieldSocialmagicktemplate extends JFormFieldList
+class SocialmagicktemplateField extends ListField
 {
+	/**
+	 * The form field type.
+	 *
+	 * @var    string
+	 * @since  1.0.0
+	 */
+	protected $type = 'Socialmagicktemplate';
+
 	protected function getOptions()
 	{
 		$templates = [];
@@ -39,11 +47,8 @@ class JFormFieldSocialmagicktemplate extends JFormFieldList
 			$templates = array_merge($templates, array_keys($result));
 		}
 
-		$options = array_map(function($templateName) {
-			return HTMLHelper::_('select.option', $templateName, $templateName);
-		}, $templates);
+		$options = array_map(fn($templateName) => HTMLHelper::_('select.option', $templateName, $templateName), $templates);
 
 		return array_merge($options, parent::getOptions() ?? []);
 	}
-
 }

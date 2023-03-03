@@ -7,67 +7,65 @@
  * @license   GNU GPL v3 or later
  */
 
+namespace LucidFox\Plugin\System\SocialMagick\Extension;
+
 defined('_JEXEC') || die();
 
+use Exception;
 use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Application\SiteApplication;
 use Joomla\CMS\Document\HtmlDocument;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Form;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
-use Joomla\CMS\Menu\AbstractMenu;
 use Joomla\CMS\Menu\MenuItem;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\Table\Table;
 use Joomla\CMS\User\UserHelper;
-use LucidFox\SocialMagick\ImageGenerator;
-use LucidFox\SocialMagick\ParametersRetriever;
+use Joomla\Registry\Registry;
+use LucidFox\Plugin\System\SocialMagick\Library\ImageGenerator;
+use LucidFox\Plugin\System\SocialMagick\Library\ParametersRetriever;
+use Throwable;
 
 /**
  * System plugin to automatically generate Open Graph images
- *
- * @package      ogimages
  *
  * @since        1.0.0
  *
  * @noinspection PhpUnused
  */
-class plgSystemSocialmagick extends CMSPlugin
+class SocialMagick extends CMSPlugin
 {
-	/** @var SiteApplication */
-	public $app;
-
 	/**
 	 * The ImageGenerator instance used throughout the plugin
 	 *
-	 * @var   ImageGenerator
+	 * @var   ImageGenerator|null
 	 * @since 1.0.0
 	 */
-	private $helper = null;
+	private ?ImageGenerator $helper;
 
 	/**
 	 * The com_content article ID being rendered, if applicable.
 	 *
-	 * @var   int
+	 * @var   int|null
 	 * @since 1.0.0
 	 */
-	private $article = '';
+	private ?int $article = null;
 
 	/**
 	 * The com_content category ID being rendered, if applicable.
 	 *
-	 * @var   int
+	 * @var   int|null
 	 * @since 1.0.0
 	 */
-	private $category = '';
+	private ?int $category = null;
 
 	/**
 	 * The placeholder variable to be replaced by the image link when Debug Link is enabled.
 	 *
 	 * @var  string
 	 */
-	private $debugLinkPlaceholder = '';
+	private string $debugLinkPlaceholder = '';
 
 	/**
 	 * plgSystemSocialmagick constructor.
@@ -79,17 +77,6 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	public function __construct(&$subject, $config = [])
 	{
-		// Register the autoloader for the library
-		if (version_compare(JVERSION, '3.999.999', 'le'))
-		{
-			/** @noinspection PhpMethodParametersCountMismatchInspection */
-			JLoader::registerNamespace('LucidFox\\SocialMagick', __DIR__ . '/library', false, false, 'psr4');
-		}
-		else
-		{
-			JLoader::registerNamespace('LucidFox\\SocialMagick', __DIR__ . '/library');
-		}
-
 		parent::__construct($subject, $config);
 
 		$this->helper = new ImageGenerator($this->params);
@@ -103,14 +90,15 @@ class plgSystemSocialmagick extends CMSPlugin
 	 *
 	 * @return  bool
 	 *
-	 * @since   1.0.0
+	 * @since        1.0.0
+	 * @noinspection PhpUnusedParameterInspection
 	 */
 	public function onContentPrepareForm(Form $form, $data): bool
 	{
 		$this->loadLanguage();
 		$this->loadLanguage('plg_system_socialmagick.sys');
 
-		Form::addFormPath(__DIR__ . '/form');
+		Form::addFormPath(__DIR__ . '/../../form');
 
 		switch ($form->getName())
 		{
@@ -136,24 +124,18 @@ class plgSystemSocialmagick extends CMSPlugin
 	/**
 	 * Triggered when Joomla is saving content. Used to save the SocialMagick configuration.
 	 *
-	 * @param   string|null   $context  Context for the content being saved
-	 * @param   Table|object  $table    Joomla table object where the content is being saved to
-	 * @param   bool          $isNew    Is this a new record?
-	 * @param   object        $data     Data being saved (Joomla 4)
+	 * @param   string|null        $context  Context for the content being saved
+	 * @param   Table|object       $table    Joomla table object where the content is being saved to
+	 * @param   bool               $isNew    Is this a new record?
+	 * @param   object|array|null  $data     Data being saved (Joomla 4)
 	 *
 	 * @return  bool
-	 * @since   1.0.0
+	 * @since        1.0.0
+	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function onContentBeforeSave(?string $context, $table, $isNew = false, $data = null): bool
+	public function onContentBeforeSave(?string $context, object $table, bool $isNew = false, $data = null): bool
 	{
-		// Joomla 3 does not pass the data from com_menus. Therefore, we have to fake it.
-		if (is_null($data) && version_compare(JVERSION, '3.999.999', 'le'))
-		{
-			$input = Factory::getApplication()->input;
-			$data  = $input->get('jform', [], 'array');
-		}
-
-		$data = (array)$data;
+		$data = (array) $data;
 
 		// Make sure I have data to save
 		if (!isset($data['socialmagick']))
@@ -191,13 +173,13 @@ class plgSystemSocialmagick extends CMSPlugin
 	 *
 	 * This is used for both articles and article categories.
 	 *
-	 * @param   string|null  $context  Context for the content being loaded
-	 * @param   object       $data     Data being saved
+	 * @param   string|null   $context  Context for the content being loaded
+	 * @param   object|array  $data     Data being saved
 	 *
 	 * @return  bool
 	 * @since   1.0.0
 	 */
-	public function onContentPrepareData(?string $context, &$data)
+	public function onContentPrepareData(?string $context, $data): bool
 	{
 		$key = null;
 
@@ -234,7 +216,8 @@ class plgSystemSocialmagick extends CMSPlugin
 	 *
 	 * @return  array
 	 *
-	 * @since   1.0.0
+	 * @since        1.0.0
+	 * @noinspection PhpUnused
 	 */
 	public function onSocialMagickGetTemplates(): array
 	{
@@ -247,7 +230,8 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * This is the main event where Social Magick evaluates whether to apply an Open Graph image to the document.
 	 *
 	 * @return  void
-	 * @since   1.0.0
+	 * @since        1.0.0
+	 * @noinspection PhpUnused
 	 */
 	public function onBeforeRender(): void
 	{
@@ -258,19 +242,19 @@ class plgSystemSocialmagick extends CMSPlugin
 		}
 
 		// Is this the frontend HTML application?
-		if (!is_object($this->app) || !($this->app instanceof CMSApplication))
+		if (!is_object($this->getApplication()) || !($this->getApplication() instanceof CMSApplication))
 		{
 			return;
 		}
 
-		if (!method_exists($this->app, 'isClient') || !$this->app->isClient('site'))
+		if (!method_exists($this->getApplication(), 'isClient') || !$this->getApplication()->isClient('site'))
 		{
 			return;
 		}
 
 		try
 		{
-			if ($this->app->getDocument()->getType() != 'html')
+			if ($this->getApplication()->getDocument()->getType() != 'html')
 			{
 				return;
 			}
@@ -283,10 +267,11 @@ class plgSystemSocialmagick extends CMSPlugin
 		// Try to get the active menu item
 		try
 		{
-			$menu        = AbstractMenu::getInstance('site');
+			//$menu        = AbstractMenu::getInstance('site');
+			$menu        = $this->getApplication()->getMenu();
 			$currentItem = $menu->getActive();
 		}
-		catch (Exception $e)
+		catch (Throwable $e)
 		{
 			return;
 		}
@@ -305,8 +290,8 @@ class plgSystemSocialmagick extends CMSPlugin
 		 * item BUT the option parameter in the application is different. Let's detect that and get out if that's the
 		 * case.
 		 */
-		$menuOption    = $currentItem->query['option']  ?? '';
-		$currentOption = $this->app->input->getCmd('option', $menuOption);
+		$menuOption    = $currentItem->query['option'] ?? '';
+		$currentOption = $this->getApplication()->input->getCmd('option', $menuOption);
 
 		if (!empty($menuOption) && ($menuOption !== $currentOption))
 		{
@@ -316,22 +301,22 @@ class plgSystemSocialmagick extends CMSPlugin
 		// Apply core content settings overrides, if applicable
 		if ($menuOption == 'com_content')
 		{
-			$task        = $this->app->input->getCmd('task', $currentItem->query['task'] ?? '');
+			$task        = $this->getApplication()->input->getCmd('task', $currentItem->query['task'] ?? '');
 			$defaultView = '';
 
 			if (strpos($task, '.') !== false)
 			{
-				[$defaultView, $task] = explode('.', $task);
+				[$defaultView,] = explode('.', $task);
 			}
 
-			$view = $this->app->input->getCmd('view', ($currentItem->query['view'] ?? '') ?: $defaultView);
+			$view = $this->getApplication()->input->getCmd('view', ($currentItem->query['view'] ?? '') ?: $defaultView);
 
 			switch ($view)
 			{
 				case 'categories':
 				case 'category':
 					// Apply category overrides if applicable
-					$category = $this->category ?: $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
+					$category = $this->category ?: $this->getApplication()->input->getInt('id', $currentItem->query['id'] ?? null);
 
 					if ($category)
 					{
@@ -351,7 +336,7 @@ class plgSystemSocialmagick extends CMSPlugin
 				case 'article':
 				case 'featured':
 					// Apply article overrides if applicable
-					$article = $this->article ?: $this->app->input->getInt('id', $currentItem->query['id'] ?? null);
+					$article = $this->article ?: $this->getApplication()->input->getInt('id', $currentItem->query['id'] ?? null);
 
 					if ($article)
 					{
@@ -417,13 +402,13 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * @param   string|null  $context  The context of the event, basically the component and view
 	 * @param   mixed        $row      The content being rendered
 	 * @param   mixed        $params   Parameters for the content being rendered
-	 * @param   int|null     $page     Page number in multi-page articles because whatever, mate.
+	 * @param   int|null     $page     Page number in multipage articles because whatever, mate.
 	 *
 	 * @return  string  We always return an empty string since we don't want to display anything
 	 *
 	 * @since   1.0.0
 	 */
-	public function onContentBeforeDisplay(?string $context, &$row, &$params, ?int $page = 0): string
+	public function onContentBeforeDisplay(?string $context, $row, $params, ?int $page = 0): string
 	{
 		/**
 		 * When Joomla is rendering an article in a Newsflash module it uses the same context as rendering an article
@@ -434,7 +419,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		 * its own module options in the $params parameter to this event. As a result it has the `moduleclass_sfx` key
 		 * defined, whereas this key does not exist when rendering an article through com_content.
 		 */
-		if (($params instanceof \Joomla\Registry\Registry) && $params->exists('moduleclass_sfx'))
+		if (($params instanceof Registry) && $params->exists('moduleclass_sfx'))
 		{
 			return '';
 		}
@@ -448,11 +433,11 @@ class plgSystemSocialmagick extends CMSPlugin
 		{
 			case 'com_content.article':
 			case 'com_content.category':
-				$this->article = $row;
+				$this->article = $row->id;
 				break;
 
 			case 'com_content.categories':
-				$this->category = $row;
+				$this->category = $row->id;
 		}
 
 		// Save the article/category, images and fields for later use
@@ -500,13 +485,14 @@ class plgSystemSocialmagick extends CMSPlugin
 	 * AJAX handler
 	 *
 	 * @return  void
-	 * @since   1.0.0
+	 * @since        1.0.0
+	 * @noinspection PhpUnused
 	 */
 	public function onAjaxSocialmagick()
 	{
 		$key     = trim($this->params->get('cron_url_key', ''));
 		$maxExec = max(1, (int) $this->params->get('cron_max_exec', 20));
-		$days = max(1, (int) $this->params->get('old_images_after', 180));
+		$days    = max(1, (int) $this->params->get('old_images_after', 180));
 
 		if (empty($key))
 		{
@@ -548,7 +534,8 @@ class plgSystemSocialmagick extends CMSPlugin
 		// First try using the magic socialMagickText app object variable.
 		try
 		{
-			$appText = trim(@$this->app->socialMagickText ?? '');
+			/** @noinspection PhpUndefinedFieldInspection */
+			$appText = trim(@$this->getApplication()->socialMagickText ?? '');
 		}
 		catch (Exception $e)
 		{
@@ -593,7 +580,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		// Finally fall back to the page title, if this feature is enabled
 		if ($useTitle)
 		{
-			return $currentItem->getParams()->get('page_title', $this->app->getDocument()->getTitle());
+			return $currentItem->getParams()->get('page_title', $this->getApplication()->getDocument()->getTitle());
 		}
 
 		// I have found nothing. Return blank.
@@ -613,7 +600,8 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	private function getExtraImage(?string $imageSource, ?string $imageField, ?string $staticImage): ?string
 	{
-		$customImage = trim(@$this->app->socialMagickImage ?? '');
+		/** @noinspection PhpUndefinedFieldInspection */
+		$customImage = trim(@$this->getApplication()->socialMagickImage ?? '');
 
 		if (!empty($customImage))
 		{
@@ -661,11 +649,9 @@ class plgSystemSocialmagick extends CMSPlugin
 			default:
 			case 'none':
 				return null;
-				break;
 
 			case 'static':
 				return $staticImage;
-				break;
 
 			case 'intro':
 			case 'fulltext':
@@ -686,8 +672,6 @@ class plgSystemSocialmagick extends CMSPlugin
 				{
 					return null;
 				}
-
-				break;
 
 			case 'custom':
 				if (empty($jcFields) || empty($imageField))
@@ -720,7 +704,6 @@ class plgSystemSocialmagick extends CMSPlugin
 				}
 
 				return null;
-				break;
 		}
 	}
 
@@ -733,9 +716,9 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	private function addOgPrefixToHtmlDocument(): void
 	{
-		// Make sure I am in the front-end and I'm doing HTML output
+		// Make sure I am in the front-end, and I'm doing HTML output
 		/** @var SiteApplication $app */
-		$app = $this->app;
+		$app = $this->getApplication();
 
 		if (!is_object($app) || !($app instanceof SiteApplication))
 		{
@@ -744,7 +727,7 @@ class plgSystemSocialmagick extends CMSPlugin
 
 		try
 		{
-			if ($this->app->getDocument()->getType() != 'html')
+			if ($this->getApplication()->getDocument()->getType() != 'html')
 			{
 				return;
 			}
@@ -783,6 +766,7 @@ class plgSystemSocialmagick extends CMSPlugin
 
 		$replacePattern = '/<html(.*)>/iU';
 
+		/** @noinspection HttpUrlsUsage */
 		$app->setBody(preg_replace($replacePattern, '<html$1 prefix="og: http://ogp.me/ns#">', $html, 1));
 	}
 
@@ -794,9 +778,9 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	private function replaceDebugImagePlaceholder(): void
 	{
-		// Make sure I am in the front-end and I'm doing HTML output
+		// Make sure I am in the front-end, and I'm doing HTML output
 		/** @var SiteApplication $app */
-		$app = $this->app;
+		$app = $this->getApplication();
 
 		if (!is_object($app) || !($app instanceof SiteApplication))
 		{
@@ -805,7 +789,7 @@ class plgSystemSocialmagick extends CMSPlugin
 
 		try
 		{
-			if ($this->app->getDocument()->getType() != 'html')
+			if ($this->getApplication()->getDocument()->getType() != 'html')
 			{
 				return;
 			}
@@ -815,7 +799,7 @@ class plgSystemSocialmagick extends CMSPlugin
 			return;
 		}
 
-		$imageLink = $this->app->getDocument()->getMetaData('og:image') ?: $this->app->getDocument()->getMetaData('twitter:image') ?: '';
+		$imageLink = ($this->getApplication()->getDocument()->getMetaData('og:image') ?: $this->getApplication()->getDocument()->getMetaData('twitter:image')) ?: '';
 
 		$this->loadLanguage();
 
@@ -823,6 +807,7 @@ class plgSystemSocialmagick extends CMSPlugin
 
 		if ($message == 'PLG_SYSTEM_SOCIALMAGICK_DEBUGLINK_MESSAGE')
 		{
+			/** @noinspection HtmlUnknownTarget */
 			$message = "<a href=\"%s\" target=\"_blank\">Preview OpenGraph Image</a>";
 		}
 
@@ -844,7 +829,8 @@ class plgSystemSocialmagick extends CMSPlugin
 	 */
 	private function applyOGImage(array $params): void
 	{
-		$menu        = AbstractMenu::getInstance('site');
+		//$menu        = AbstractMenu::getInstance('site');
+		$menu        = $this->getApplication()->getMenu();
 		$currentItem = $menu->getActive();
 
 		// Get the applicable options
@@ -875,26 +861,7 @@ class plgSystemSocialmagick extends CMSPlugin
 		// So, Joomla 4 adds some meta information to the image. Let's fix that.
 		if (!empty($extraImage))
 		{
-			if (version_compare(JVERSION, '3.999.999', 'gt') && method_exists(HTMLHelper::class, 'cleanImageURL'))
-			{
-				$extraImage = HTMLHelper::cleanImageURL($extraImage)->url ?? '';
-			}
-			elseif (version_compare(JVERSION, '3.999.999', 'gt'))
-			{
-				// Early Joomla 4 alphas and betas didn't have cleanImageURL and used a different format.
-				$questionMarkPos = strrpos($extraImage, '?');
-
-				if ($questionMarkPos !== false)
-				{
-					$extraImage = substr($extraImage, 0, $questionMarkPos);
-				}
-
-				// Is this an absolute path?
-				if (@file_exists(JPATH_ROOT . '/' . $extraImage))
-				{
-					$extraImage = JPATH_ROOT . '/' . $extraImage;
-				}
-			}
+			$extraImage = HTMLHelper::cleanImageURL($extraImage)->url ?? '';
 		}
 
 		if (!is_null($extraImage) && (!@file_exists($extraImage) || !@is_readable($extraImage)))
@@ -902,7 +869,8 @@ class plgSystemSocialmagick extends CMSPlugin
 			$extraImage = null;
 		}
 
-		$template = trim(@$this->app->socialMagickTemplate ?? '') ?: $template;
+		/** @noinspection PhpUndefinedFieldInspection */
+		$template = trim(@$this->getApplication()->socialMagickTemplate ?? '') ?: $template;
 
 		// Generate (if necessary) and apply the Open Graph image
 		$this->helper->applyOGImage($text, $template, $extraImage, $overrideOG);
@@ -925,11 +893,11 @@ class plgSystemSocialmagick extends CMSPlugin
 				break;
 
 			case 1:
-				$this->conditionallyApplyMeta('og:title', $this->app->getDocument()->getTitle());
+				$this->conditionallyApplyMeta('og:title', $this->getApplication()->getDocument()->getTitle());
 				break;
 
 			case 2:
-				$this->conditionallyApplyMeta('og:title', $params['og_title_custom'] ?? $this->app->getDocument()->getTitle());
+				$this->conditionallyApplyMeta('og:title', $params['og_title_custom'] ?? $this->getApplication()->getDocument()->getTitle());
 				break;
 		}
 
@@ -940,24 +908,24 @@ class plgSystemSocialmagick extends CMSPlugin
 				break;
 
 			case 1:
-				$this->conditionallyApplyMeta('og:description', $this->app->getDocument()->getDescription());
+				$this->conditionallyApplyMeta('og:description', $this->getApplication()->getDocument()->getDescription());
 				break;
 
 			case 2:
-				$this->conditionallyApplyMeta('og:description', $params['og_description_custom'] ?? $this->app->getDocument()->getDescription());
+				$this->conditionallyApplyMeta('og:description', $params['og_description_custom'] ?? $this->getApplication()->getDocument()->getDescription());
 				break;
 		}
 
 		// Apply Open Graph URL
 		if (($params['og_url'] ?? 1) == 1)
 		{
-			$this->conditionallyApplyMeta('og:url', $this->app->getDocument()->getBase());
+			$this->conditionallyApplyMeta('og:url', $this->getApplication()->getDocument()->getBase());
 		}
 
 		// Apply Open Graph Site Name
 		if (($params['og_site_name'] ?? 1) == 1)
 		{
-			$this->conditionallyApplyMeta('og:site_name', $this->app->get('sitename', ''));
+			$this->conditionallyApplyMeta('og:site_name', $this->getApplication()->get('sitename', ''));
 		}
 
 		// Apply Facebook App ID
@@ -978,7 +946,6 @@ class plgSystemSocialmagick extends CMSPlugin
 			case 0:
 				// Nothing further to do with Twitter.
 				return;
-				break;
 
 			case 1:
 				$this->conditionallyApplyMeta('twitter:card', 'summary', 'name');
@@ -1003,7 +970,7 @@ class plgSystemSocialmagick extends CMSPlugin
 
 		// Transcribe Open Graph properties to Twitter meta
 		/** @var HtmlDocument $doc */
-		$doc = $this->app->getDocument();
+		$doc = $this->getApplication()->getDocument();
 
 		$transcribes = [
 			'title'       => $doc->getMetaData('og:title', 'property'),
@@ -1038,7 +1005,7 @@ class plgSystemSocialmagick extends CMSPlugin
 	private function conditionallyApplyMeta(string $name, $value, string $attribute = 'property'): void
 	{
 		/** @var HtmlDocument $doc */
-		$doc = $this->app->getDocument();
+		$doc = $this->getApplication()->getDocument();
 
 		$existing = $doc->getMetaData($name, $attribute);
 

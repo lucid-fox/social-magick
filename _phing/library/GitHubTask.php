@@ -16,7 +16,7 @@
 use Github\AuthMethod;
 use Github\Client;
 
-if (!class_exists('Github\\Client'))
+if (!class_exists(\Github\Client::class))
 {
 	$autoloaderFile = __DIR__ . '/../../vendor/autoload.php';
 

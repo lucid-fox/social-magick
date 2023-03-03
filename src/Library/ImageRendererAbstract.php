@@ -7,9 +7,7 @@
  * @license   GNU GPL v3 or later
  */
 
-namespace LucidFox\SocialMagick;
-
-use Joomla\CMS\Filesystem\Folder;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 defined('_JEXEC') || die();
 
@@ -21,7 +19,7 @@ abstract class ImageRendererAbstract implements ImageRendererInterface
 	 * @var   bool
 	 * @since 1.0.0
 	 */
-	protected $debugText = false;
+	protected bool $debugText = false;
 
 	/**
 	 * Generated image quality, 0-100
@@ -32,7 +30,7 @@ abstract class ImageRendererAbstract implements ImageRendererInterface
 	 * @var   int
 	 * @since 1.0.0
 	 */
-	protected $quality = 80;
+	protected int $quality = 80;
 
 	/** @inheritDoc */
 	public function __construct(int $quality = 80, bool $debugText = false)
@@ -98,11 +96,9 @@ abstract class ImageRendererAbstract implements ImageRendererInterface
 			case 'jpe':
 			case 'jpeg':
 				return 'jpg';
-				break;
 
 			default:
 				return $extension;
-				break;
 		}
 	}
 

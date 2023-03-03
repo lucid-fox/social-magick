@@ -8,8 +8,8 @@ Your templates can use an image as well. It can be the category image; the artic
 
 ### Requirements
 
-* Joomla 3.9, 3.10, 4.0 or 4.1.
-* PHP 7.2, 7.3, 7.4, 8.0 or 8.1.
+* Joomla 4.2
+* PHP 7.4, 8.0, 8.1 or 8.2.
 * The PHP `gd` or `imagick` extension installed and enabled.
 
 ### Quick start
