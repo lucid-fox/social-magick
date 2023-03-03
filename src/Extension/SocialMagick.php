@@ -98,7 +98,7 @@ class SocialMagick extends CMSPlugin
 		$this->loadLanguage();
 		$this->loadLanguage('plg_system_socialmagick.sys');
 
-		Form::addFormPath(__DIR__ . '/form');
+		Form::addFormPath(__DIR__ . '/../../form');
 
 		switch ($form->getName())
 		{
