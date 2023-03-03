@@ -861,7 +861,7 @@ class SocialMagick extends CMSPlugin
 		// So, Joomla 4 adds some meta information to the image. Let's fix that.
 		if (!empty($extraImage))
 		{
-			$extraImage = HTMLHelper::cleanImageURL($extraImage)->url ?? '';
+			$extraImage = urldecode(HTMLHelper::cleanImageURL($extraImage)->url ?? '');
 		}
 
 		if (!is_null($extraImage) && (!@file_exists($extraImage) || !@is_readable($extraImage)))
