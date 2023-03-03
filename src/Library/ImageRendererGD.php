@@ -15,8 +15,6 @@ defined('_JEXEC') || die();
 
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\HTML\HTMLHelper;
-use function LucidFox\SocialMagick\count;
-use const LucidFox\SocialMagick\JPATH_ROOT;
 
 /**
  * An image renderer using the GD library
@@ -65,13 +63,10 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		if ($template['base-image'])
 		{
 			// Joomla 4 append infomration to the image after either a question mark OR a hash sign. Let's fix that.
-			$baseImage       = $template['base-image'];
+			$baseImage = $template['base-image'];
 
-			if (version_compare(JVERSION, '4.0.0', 'ge'))
-			{
-				$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
-				$baseImage = $imageInfo->url;
-			}
+			$imageInfo = HTMLHelper::_('cleanImageURL', $baseImage);
+			$baseImage = $imageInfo->url;
 
 			if (!@file_exists($baseImage))
 			{
@@ -490,9 +485,10 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 * @param   string  $color        The hex color to render it in.
 	 * @param   string  $alignment    Horizontal alignment: 'left', 'center', 'right'.
 	 * @param   string  $font         The font file to render it with.
-	 * @param   int     $fontSize     The font size, in points.
+	 * @param   float   $fontSize     The font size, in points.
 	 * @param   int     $maxWidth     Maximum text render width, in pixels.
 	 * @param   int     $maxHeight    Maximum text render height, in pixels.
+	 * @param   bool    $centerTextVertically
 	 * @param   float   $lineSpacing  Line spacing factor. 1.35 is what Imagick uses by default as far as I can tell.
 	 *
 	 * @return  array  [$image, $textWidth, $textHeight]  The width and height include the 50px margin on all sides
@@ -680,7 +676,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 *
 	 * @see     https://github.com/MattWilcox/Adaptive-Images/blob/master/adaptive-images.php#L109
 	 */
-	private function findSharp($intOrig, $intFinal)
+	private function findSharp(int $intOrig, int $intFinal): int
 	{
 		$intFinal = $intFinal * (750.0 / $intOrig);
 		$intA     = 52;
@@ -695,7 +691,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 * Returns the width and height of a line of text
 	 *
 	 * @param   string  $text  The text to render
-	 * @param   int     $size  Font size, in points
+	 * @param   float   $size  Font size, in points
 	 * @param   string  $font  Font file
 	 *
 	 * @return  array  [width, height]
@@ -717,7 +713,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 * Chop the string to lines which are rendered up to a given maximum width
 	 *
 	 * @param   string  $text      The text to chop
-	 * @param   int     $size      Font size, in points
+	 * @param   float   $size      Font size, in points
 	 * @param   string  $font      Font file
 	 * @param   int     $maxWidth  Maximum width for the rendered text, in pixels
 	 *

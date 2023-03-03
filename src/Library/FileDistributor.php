@@ -9,7 +9,6 @@
 
 namespace LucidFox\Plugin\System\SocialMagick\Library;
 
-
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
 
