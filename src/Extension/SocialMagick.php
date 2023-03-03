@@ -124,16 +124,16 @@ class SocialMagick extends CMSPlugin
 	/**
 	 * Triggered when Joomla is saving content. Used to save the SocialMagick configuration.
 	 *
-	 * @param   string|null   $context  Context for the content being saved
-	 * @param   Table|object  $table    Joomla table object where the content is being saved to
-	 * @param   bool          $isNew    Is this a new record?
-	 * @param   object|null   $data     Data being saved (Joomla 4)
+	 * @param   string|null        $context  Context for the content being saved
+	 * @param   Table|object       $table    Joomla table object where the content is being saved to
+	 * @param   bool               $isNew    Is this a new record?
+	 * @param   object|array|null  $data     Data being saved (Joomla 4)
 	 *
 	 * @return  bool
 	 * @since        1.0.0
 	 * @noinspection PhpUnusedParameterInspection
 	 */
-	public function onContentBeforeSave(?string $context, object $table, bool $isNew = false, object $data = null): bool
+	public function onContentBeforeSave(?string $context, object $table, bool $isNew = false, $data = null): bool
 	{
 		$data = (array) $data;
 
@@ -861,26 +861,7 @@ class SocialMagick extends CMSPlugin
 		// So, Joomla 4 adds some meta information to the image. Let's fix that.
 		if (!empty($extraImage))
 		{
-			if (version_compare(JVERSION, '3.999.999', 'gt') && method_exists(HTMLHelper::class, 'cleanImageURL'))
-			{
-				$extraImage = HTMLHelper::cleanImageURL($extraImage)->url ?? '';
-			}
-			elseif (version_compare(JVERSION, '3.999.999', 'gt'))
-			{
-				// Early Joomla 4 alphas and betas didn't have cleanImageURL and used a different format.
-				$questionMarkPos = strrpos($extraImage, '?');
-
-				if ($questionMarkPos !== false)
-				{
-					$extraImage = substr($extraImage, 0, $questionMarkPos);
-				}
-
-				// Is this an absolute path?
-				if (@file_exists(JPATH_ROOT . '/' . $extraImage))
-				{
-					$extraImage = JPATH_ROOT . '/' . $extraImage;
-				}
-			}
+			$extraImage = HTMLHelper::cleanImageURL($extraImage)->url ?? '';
 		}
 
 		if (!is_null($extraImage) && (!@file_exists($extraImage) || !@is_readable($extraImage)))
