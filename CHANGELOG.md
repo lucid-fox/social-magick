@@ -1,5 +1,6 @@
-# Social Magick 1.0.3
+# Social Magick 2.0.0
 
+* Upgrade: Joomla 4.2, PHP 7.4+ required
 * Fix: ImageRendererGD throws a PHP 8 notice
 * Fix: ImageRendererImagick throws a PHP 8 notice
 
