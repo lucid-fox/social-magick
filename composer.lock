@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "405fece5da547a3b70fd200b957e9d00",
+    "content-hash": "cdcefcb9f402a9182442fd7403442d3b",
     "packages": [],
     "packages-dev": [
         {
@@ -151,23 +151,23 @@
         },
         {
             "name": "czproject/git-php",
-            "version": "v3.18.2",
+            "version": "v4.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/czproject/git-php.git",
-                "reference": "cb3bfc6f1e487e572870afae5d52ef3c7d250d8a"
+                "reference": "bb195e30442bc5206b30fa9a304e20ea8e96458f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/czproject/git-php/zipball/cb3bfc6f1e487e572870afae5d52ef3c7d250d8a",
-                "reference": "cb3bfc6f1e487e572870afae5d52ef3c7d250d8a",
+                "url": "https://api.github.com/repos/czproject/git-php/zipball/bb195e30442bc5206b30fa9a304e20ea8e96458f",
+                "reference": "bb195e30442bc5206b30fa9a304e20ea8e96458f",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.4.0"
+                "php": ">=5.6.0"
             },
             "require-dev": {
-                "nette/tester": "^1.1"
+                "nette/tester": "^2.0"
             },
             "type": "library",
             "autoload": {
@@ -191,9 +191,15 @@
             ],
             "support": {
                 "issues": "https://github.com/czproject/git-php/issues",
-                "source": "https://github.com/czproject/git-php/tree/v3.18.2"
+                "source": "https://github.com/czproject/git-php/tree/v4.1.0"
             },
-            "time": "2021-02-15T11:41:33+00:00"
+            "funding": [
+                {
+                    "url": "https://www.paypal.com/donate?hosted_button_id=EPSKR7MGVV7KC",
+                    "type": "custom"
+                }
+            ],
+            "time": "2022-12-10T18:23:32+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
