@@ -9,8 +9,6 @@
 
 namespace LucidFox\Plugin\System\SocialMagick\Library;
 
-use const LucidFox\SocialMagick\JPATH_PLUGINS;
-
 defined('_JEXEC') || die();
 
 abstract class ImageRendererAbstract implements ImageRendererInterface

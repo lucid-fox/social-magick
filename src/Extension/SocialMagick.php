@@ -173,13 +173,13 @@ class SocialMagick extends CMSPlugin
 	 *
 	 * This is used for both articles and article categories.
 	 *
-	 * @param   string|null  $context  Context for the content being loaded
-	 * @param   object       $data     Data being saved
+	 * @param   string|null   $context  Context for the content being loaded
+	 * @param   object|array  $data     Data being saved
 	 *
 	 * @return  bool
 	 * @since   1.0.0
 	 */
-	public function onContentPrepareData(?string $context, object $data): bool
+	public function onContentPrepareData(?string $context, $data): bool
 	{
 		$key = null;
 
@@ -433,11 +433,11 @@ class SocialMagick extends CMSPlugin
 		{
 			case 'com_content.article':
 			case 'com_content.category':
-				$this->article = $row;
+				$this->article = $row->id;
 				break;
 
 			case 'com_content.categories':
-				$this->category = $row;
+				$this->category = $row->id;
 		}
 
 		// Save the article/category, images and fields for later use
