@@ -7,7 +7,7 @@
   ~ @license   GNU GPL v3 or later
   -->
 <form>
-    <fields name="socialmagick" addfieldpath="/plugins/system/socialmagick/fields">
+    <fields name="socialmagick" addfieldprefix="LucidFox\Plugin\System\SocialMagick\Field">
         <fieldset name="socialmagick"
                   label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_FIELDSET_SOCIALMAGICK_HEAD"
 
@@ -52,7 +52,8 @@
 
             <field
                     name="use_article"
-                    type="fancyradio"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_ARTICLE_DESC"
                     class="btn-group btn-group-yesno"
@@ -65,7 +66,8 @@
 
             <field
                     name="use_title"
-                    type="fancyradio"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_USE_TITLE_DESC"
                     class="btn-group btn-group-yesno"
@@ -113,7 +115,8 @@
 
             <field
                     name="override_og"
-                    type="fancyradio"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
                     label="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_OG_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_OVERRIDE_OG_DESC"
                     class="btn-group btn-group-yesno"
@@ -179,7 +182,8 @@
 
             <field
                     name="og_url"
-                    type="fancyradio"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
                     label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_URL_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_URL_DESC"
                     class="btn-group btn-group-yesno"
@@ -192,7 +196,8 @@
 
             <field
                     name="og_site_name"
-                    type="fancyradio"
+                    type="radio"
+                    layout="joomla.form.field.radio.switcher"
                     label="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_SITE_NAME_LABEL"
                     description="PLG_SYSTEM_SOCIALMAGICK_CONFIG_OG_SITE_NAME_DESC"
                     class="btn-group btn-group-yesno"

@@ -7,7 +7,7 @@
  * @license   GNU GPL v3 or later
  */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 defined('_JEXEC') || die();
 

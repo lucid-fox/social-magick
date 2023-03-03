@@ -9,12 +9,14 @@
 
 /** @noinspection PhpComposerExtensionStubsInspection */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 defined('_JEXEC') || die();
 
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\HTML\HTMLHelper;
+use function LucidFox\SocialMagick\count;
+use const LucidFox\SocialMagick\JPATH_ROOT;
 
 /**
  * An image renderer using the GD library
@@ -49,9 +51,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 			'imagecopyresampled',
 		];
 
-		return array_reduce($functions, function ($carry, $function) {
-			return $carry && function_exists($function);
-		}, true);
+		return array_reduce($functions, fn($carry, $function) => $carry && function_exists($function), true);
 	}
 
 	/** @inheritDoc */
@@ -555,12 +555,8 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		$lines = $this->horizontalAlignLines($lines, $alignment, $maxWidth);
 
 		// Get the real width and height of the text
-		$textWidth  = array_reduce($lines, function (int $carry, array $line) {
-			return max($carry, $line['width']);
-		}, 0);
-		$textHeight = array_reduce($lines, function (int $carry, array $line) {
-			return max($carry, $line['y'] + $line['height']);
-		}, 0);
+		$textWidth  = array_reduce($lines, fn(int $carry, array $line) => max($carry, $line['width']), 0);
+		$textHeight = array_reduce($lines, fn(int $carry, array $line) => max($carry, $line['y'] + $line['height']), 0);
 
 		// Create a transparent image with the text dimensions
 		$image = imagecreatetruecolor($maxWidth + 100, $maxHeight + 100);
@@ -853,9 +849,7 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	private function applyLineSpacing(array $lines, float $lineSpacing): array
 	{
 		// Get the maximum line height
-		$maxHeight = array_reduce($lines, function (int $carry, array $line): int {
-			return max($carry, $line['height']);
-		}, 0);
+		$maxHeight = array_reduce($lines, fn(int $carry, array $line): int => max($carry, $line['height']), 0);
 
 		$lineHeight = (int) ceil($maxHeight * $lineSpacing);
 		$i          = -1;
@@ -880,8 +874,6 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 	 */
 	private function applyMaximumHeight(array $lines, int $maxHeight): array
 	{
-		return array_filter($lines, function (array $line) use ($maxHeight): bool {
-			return ($line['y'] + $line['height']) <= $maxHeight;
-		});
+		return array_filter($lines, fn(array $line): bool => ($line['y'] + $line['height']) <= $maxHeight);
 	}
 }

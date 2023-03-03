@@ -7,7 +7,7 @@
  * @license   GNU GPL v3 or later
  */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 defined('_JEXEC') || die();
 
@@ -22,6 +22,7 @@ use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Uri\Uri;
 use Joomla\Registry\Registry;
+use function LucidFox\SocialMagick\count;
 
 /**
  * Automatic Open Graph image generator.
@@ -33,12 +34,11 @@ use Joomla\Registry\Registry;
 final class ImageGenerator
 {
 	/**
-	 * Is this plugin in Development Mode? In this case the images are forcibly generated.
-	 *
-	 * @var   bool
-	 * @since 1.0.0
-	 */
-	private $devMode = false;
+  * Is this plugin in Development Mode? In this case the images are forcibly generated.
+  *
+  * @since 1.0.0
+  */
+ private bool $devMode = false;
 
 	/**
 	 * Open Graph image templates, parsed from the plugin options
@@ -81,12 +81,11 @@ final class ImageGenerator
 	private $oldImageThreshold = 0;
 
 	/**
-	 * Should I delete old images if the image I am asked to generate already exists?
-	 *
-	 * @var   bool
-	 * @since 1.0.0
-	 */
-	private $autoDeleteOldImages = false;
+  * Should I delete old images if the image I am asked to generate already exists?
+  *
+  * @since 1.0.0
+  */
+ private bool $autoDeleteOldImages = false;
 
 	/**
 	 * ImageGenerator constructor.

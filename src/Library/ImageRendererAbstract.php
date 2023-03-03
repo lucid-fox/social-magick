@@ -7,9 +7,9 @@
  * @license   GNU GPL v3 or later
  */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
-use Joomla\CMS\Filesystem\Folder;
+use const LucidFox\SocialMagick\JPATH_PLUGINS;
 
 defined('_JEXEC') || die();
 

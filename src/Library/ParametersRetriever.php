@@ -7,7 +7,7 @@
  * @license   GNU GPL v3 or later
  */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 use CategoriesModelCategory;
 use ContentModelArticle;
@@ -22,18 +22,19 @@ use Joomla\CMS\Table\Table;
 use Joomla\Component\Categories\Administrator\Model\CategoryModel;
 use Joomla\Component\Content\Site\Model\ArticleModel;
 use Joomla\Registry\Registry;
+use const LucidFox\SocialMagick\JPATH_ADMINISTRATOR;
+use const LucidFox\SocialMagick\JPATH_SITE;
 
 defined('_JEXEC') || die();
 
 abstract class ParametersRetriever
 {
 	/**
-	 * Default Social Magick parameters for menu items, categories and articles
-	 *
-	 * @var   array
-	 * @since 1.0.0
-	 */
-	private static $defaultParameters = [
+  * Default Social Magick parameters for menu items, categories and articles
+  *
+  * @since 1.0.0
+  */
+ private static array $defaultParameters = [
 		'override'              => '0',
 		'generate_images'       => '-1',
 		'template'              => '',
@@ -62,31 +63,28 @@ abstract class ParametersRetriever
 	 * @var   array[]
 	 * @since 1.0.0
 	 */
-	private static $menuParameters = [];
+	private static array $menuParameters = [];
 
 	/**
-	 * Cached parameters per article ID
-	 *
-	 * @var   array
-	 * @since 1.0.0
-	 */
-	private static $articleParameters = [];
+  * Cached parameters per article ID
+  *
+  * @since 1.0.0
+  */
+ private static array $articleParameters = [];
 
 	/**
-	 * Cached parameters **FOR ARTICLES** per category ID
-	 *
-	 * @var   array
-	 * @since 1.0.0
-	 */
-	private static $categoryArticleParameters = [];
+  * Cached parameters **FOR ARTICLES** per category ID
+  *
+  * @since 1.0.0
+  */
+ private static array $categoryArticleParameters = [];
 
 	/**
-	 * Cached parameters **FOR THE CATEGORY** per category ID
-	 *
-	 * @var   array
-	 * @since 1.0.0
-	 */
-	private static $categoryParameters = [];
+  * Cached parameters **FOR THE CATEGORY** per category ID
+  *
+  * @since 1.0.0
+  */
+ private static array $categoryParameters = [];
 
 	/**
 	 * Article objects per article ID

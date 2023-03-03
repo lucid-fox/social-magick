@@ -12,7 +12,6 @@
   <component name="PhpIncludePathManager">
     <include_path>
       <path value="../../master/joomla4" />
-      <path value="$USER_HOME$/Sites/boot4" />
       <path value="$PROJECT_DIR$/vendor/symfony/polyfill-intl-normalizer" />
       <path value="$PROJECT_DIR$/vendor/symfony/polyfill-intl-idn" />
       <path value="$PROJECT_DIR$/vendor/symfony/polyfill-php80" />
@@ -45,7 +44,7 @@
       <path value="$PROJECT_DIR$/vendor/phpstan/phpstan" />
     </include_path>
   </component>
-  <component name="PhpProjectSharedConfiguration" php_language_level="8.0">
+  <component name="PhpProjectSharedConfiguration" php_language_level="7.4">
     <option name="suggestChangeDefaultLanguageLevel" value="false" />
   </component>
   <component name="PhpStan">

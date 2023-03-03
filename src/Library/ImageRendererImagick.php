@@ -10,13 +10,14 @@
 
 /** @noinspection PhpComposerExtensionStubsInspection */
 
-namespace LucidFox\SocialMagick;
+namespace LucidFox\Plugin\System\SocialMagick\Library;
 
 use Imagick;
 use ImagickDraw;
 use ImagickPixel;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\HTML\HTMLHelper;
+use const LucidFox\SocialMagick\JPATH_ROOT;
 
 defined('_JEXEC') || die();
 
