@@ -14,6 +14,7 @@ defined('_JEXEC') || die();
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
+use Joomla\CMS\Language\Text;
 
 /**
  * Select a SocialMagick template
@@ -41,7 +42,9 @@ class SocialmagicktemplateField extends ListField
 		{
 			if (empty($result) || !is_array($result))
 			{
-				return [];
+				return [
+					'' => Text::_('PLG_SYSTEM_SOCIALMAGICK_FORM_COMMON_TEMPLATE_DISABLED')
+				];
 			}
 
 			$templates = array_merge($templates, array_keys($result));
@@ -49,6 +52,15 @@ class SocialmagicktemplateField extends ListField
 
 		$options = array_map(fn($templateName) => HTMLHelper::_('select.option', $templateName, $templateName), $templates);
 
-		return array_merge($options, parent::getOptions() ?? []);
+		$options = array_merge($options, parent::getOptions() ?? []);
+
+		if (empty($options))
+		{
+			return [
+				'' => '🚨 TEMPORARILY DISABLED. To enable: set Status to Enabled, click Save. 🚨'
+			];
+		}
+
+		return $options;
 	}
 }
