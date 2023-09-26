@@ -1,6 +1,6 @@
 # Social Magick 2.0.0
 
-* Upgrade: Joomla 4.2, PHP 7.4+ required
+* Upgrade: Joomla 4.2, PHP 7.4+ required; compatible with Joomla! up to 5.0, PHP up to 8.3
 * Fix: ImageRendererGD throws a PHP 8 notice
 * Fix: ImageRendererImagick throws a PHP 8 notice
 * Fix: Cannot handle images with spaces in their names (gh-38)

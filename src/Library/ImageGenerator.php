@@ -14,14 +14,17 @@ defined('_JEXEC') || die();
 use DateInterval;
 use Exception;
 use Joomla\CMS\Application\ApplicationHelper;
+use Joomla\CMS\Application\CMSApplication;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Document\HtmlDocument;
-use Joomla\CMS\Factory;
 use Joomla\CMS\Filesystem\File;
 use Joomla\CMS\Filesystem\Folder;
 use Joomla\CMS\Filesystem\Path;
 use Joomla\CMS\Uri\Uri;
+use Joomla\Database\DatabaseAwareInterface;
+use Joomla\Database\DatabaseAwareTrait;
 use Joomla\Registry\Registry;
+use Throwable;
 
 /**
  * Automatic Open Graph image generator.
@@ -30,8 +33,18 @@ use Joomla\Registry\Registry;
  *
  * @since       1.0.0
  */
-final class ImageGenerator
+final class ImageGenerator implements DatabaseAwareInterface
 {
+	use DatabaseAwareTrait;
+
+	/**
+	 * The CMS application we are running under
+	 *
+	 * @var   CMSApplication
+	 * @since 2.0.0
+	 */
+	private CMSApplication $app;
+
 	/**
 	 * Is this plugin in Development Mode? In this case the images are forcibly generated.
 	 *
@@ -153,10 +166,10 @@ final class ImageGenerator
 		// Make sure we have a front-end, HTML document — otherwise OG images are pointless
 		try
 		{
-			$app      = Factory::getApplication();
+			$app      = $this->app;
 			$document = $app->getDocument();
 		}
-		catch (Exception $e)
+		catch (Throwable $e)
 		{
 			return;
 		}
@@ -340,7 +353,7 @@ final class ImageGenerator
 	{
 		try
 		{
-			$db    = Factory::getDbo();
+			$db    = $this->getDatabase();
 			$jNow  = new Date();
 			$query = $db->getQuery(true)
 				->insert($db->qn('#__socialmagick_images'))
@@ -466,7 +479,7 @@ final class ImageGenerator
 
 		try
 		{
-			$db    = Factory::getDbo();
+			$db    = $this->getDatabase();
 			$query = $db->getQuery(true)
 				->delete('#__socialmagick_images')
 				->where($db->qn('hash') . ' IN(' . implode(',', array_map([$db, 'q'], $deleted)) . ')');
@@ -476,6 +489,19 @@ final class ImageGenerator
 		{
 			// Shouldn't happen but I know better than to be an optimist when it comes to building software.
 		}
+	}
+
+	/**
+	 * Set the CMS application object
+	 *
+	 * @param   CMSApplication  $app
+	 *
+	 * @return  void
+	 * @since   2.0.0
+	 */
+	public function setApplication(CMSApplication $app)
+	{
+		$this->app = $app;
 	}
 
 	/**
@@ -491,7 +517,7 @@ final class ImageGenerator
 	 */
 	private function getOldImages(int $days = 180, $maxImages = 50): array
 	{
-		$db    = Factory::getDbo();
+		$db    = $this->getDatabase();
 		$jNow  = new Date();
 		$jThen = $jNow->sub(new DateInterval(sprintf('P%dD', $days)));
 		$query = $db->getQuery(true)

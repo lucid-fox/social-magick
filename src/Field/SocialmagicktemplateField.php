@@ -11,10 +11,13 @@ namespace LucidFox\Plugin\System\SocialMagick\Field;
 
 defined('_JEXEC') || die();
 
+use Joomla\CMS\Event\GenericEvent;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\Event\Event;
+use Throwable;
 
 /**
  * Select a SocialMagick template
@@ -38,7 +41,20 @@ class SocialmagicktemplateField extends ListField
 	{
 		$templates = [];
 
-		foreach (Factory::getApplication()->triggerEvent('onSocialMagickGetTemplates') as $result)
+		try
+		{
+			$app        = Factory::getApplication();
+			$dispatcher = $app->getDispatcher();
+		}
+		catch (Throwable $e)
+		{
+			return [];
+		}
+
+		$event = new Event('onSocialMagickGetTemplates');
+		$results = $dispatcher->dispatch($event->getName(), $event)->getArgument('result', []) ?: [];
+
+		foreach ($results as $result)
 		{
 			if (empty($result) || !is_array($result))
 			{
