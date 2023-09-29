@@ -433,7 +433,7 @@ class SocialMagick extends CMSPlugin implements SubscriberInterface, DatabaseAwa
 	 */
 	public function onContentBeforeDisplay(Event $event): void
 	{
-		[$context, $row, $params, $page] = array_values($event->getArguments());
+		[$context, $row, $params] = array_values($event->getArguments());
 		$result = $event->getArgument('result') ?: [];
 		$result = is_array($result) ? $result : [$result];
 
