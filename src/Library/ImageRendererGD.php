@@ -366,9 +366,9 @@ class ImageRendererGD extends ImageRendererAbstract implements ImageRendererInte
 		$newImage = imagecreatetruecolor((int) $resizeWidth, (int) $resizeHeight);
 		imagealphablending($newImage, false);
 		$transparent = imagecolorallocatealpha($newImage, 255, 255, 255, 127);
-		imagefilledrectangle($newImage, 0, 0, $resizeWidth, $resizeHeight, $transparent);
+		imagefilledrectangle($newImage, 0, 0, (int) $resizeWidth, (int) $resizeHeight, (int) $transparent);
 
-		imagecopyresampled($newImage, $image, 0, 0, 0, 0, $resizeWidth, $resizeHeight, $oldWidth, $oldHeight);
+		imagecopyresampled($newImage, $image, 0, 0, 0, 0, (int) $resizeWidth, (int) $resizeHeight, $oldWidth, $oldHeight);
 		imagedestroy($image);
 		$image = $newImage;
 		unset($newImage);
