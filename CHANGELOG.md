@@ -1,5 +1,7 @@
 # Social Magick 2.0.0
 
+We have Joomla 5 support! And no more zombie update notices.
+
 * Upgrade: Joomla 4.2, PHP 7.4+ required; compatible with Joomla! up to 5.0, PHP up to 8.3
 * Fix: ImageRendererGD throws a PHP 8 notice
 * Fix: ImageRendererImagick throws a PHP 8 notice
