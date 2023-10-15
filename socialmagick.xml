@@ -23,13 +23,12 @@
     <namespace path="src">LucidFox\Plugin\System\SocialMagick</namespace>
 
     <files>
-        <folder>fields</folder>
         <folder>fonts</folder>
         <folder>form</folder>
         <folder>images</folder>
         <folder plugin="socialmagick">services</folder>
-        <folder>src</folder>
         <folder>sql</folder>
+        <folder>src</folder>
 
         <filename>.htaccess</filename>
         <filename>web.config</filename>

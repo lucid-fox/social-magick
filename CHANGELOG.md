@@ -1,6 +1,7 @@
-# Social Magick 2.0.0
+# Social Magick 2.0.1
+* Fix: errant entry in XML manifest prevents installation
 
-We have Joomla 5 support! And no more zombie update notices.
+# Social Magick 2.0.0
 
 * Upgrade: Joomla 4.2, PHP 7.4+ required; compatible with Joomla! up to 5.0, PHP up to 8.3
 * Fix: ImageRendererGD throws a PHP 8 notice

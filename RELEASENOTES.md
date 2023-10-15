@@ -1,15 +1,9 @@
-Welcome to Social Magick!
-
-This plugin automatically generates Open Graph images for your site's pages. These images are used when sharing a link to your site on social media (e.g. Facebook, Twitter, …) and chat applications (e.g. Slack, …). 
-
-The images are generated from a template image with superimposed title text. By default, the article text used is (in order of preference) the core content category or article's title, the page title you've set up in the menu item or the page title Joomla has generated for the page.
-
-Your templates can use an image as well. It can be the category image; the article intro or full text image; or an image you provide in a custom field, the name of which you can choose per menu item. This works best on sites which make extensive use of article images.
+We have Joomla 5 support! And no more zombie update notices.
 
 ### Requirements
 
-* Joomla 4.2
-* PHP 7.4, 8.0, 8.1 or 8.2.
+* Joomla 4.3, 4.4, or 5.0
+* PHP 7.4, 8.0, 8.1, 8.2, or 8.3.
 * The PHP `gd` or `imagick` extension installed and enabled.
 
 ### Quick start
