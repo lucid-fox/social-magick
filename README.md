@@ -1,6 +1,6 @@
 # ![Lucid Fox Social Magick](https://github.com/lucid-fox/social-magick/blob/main/_assets/social-magick-og.jpeg?raw=true)
 
-A Joomla 3 and 4 plugin to automatically generate Open Graph images.
+A Joomla 4 and 5 plugin to automatically generate Open Graph images.
 
 [Downloads](https://github.com/lucid-fox/social-magick/releases) • [Issues](https://github.com/lucid-fox/social-magick/issues)
 
@@ -21,8 +21,8 @@ For example:
 
 This plugin has the following minimum requirements:
 
-* Joomla 3.9 or any later 3.x version; or Joomla 4.0
-* PHP 7.2, 7.3, 7.4 or 8.0
+* Joomla 4.3 or later; or Joomla 5.0
+* PHP 7.4, 8.0, 8.1, 8.2, or 8.3
 * The Imagick or GD PHP extension installed and enabled. (If you're not sure how to do this, ask your host.)
 
 ## Quick start
