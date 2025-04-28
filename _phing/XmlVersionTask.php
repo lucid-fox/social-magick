@@ -22,7 +22,7 @@
  *
  * <xlversion repository="/path/to/repository" version="1.2.3" date="2019-03-05" />
  */
-class XmlVersionTask extends Task
+class XmlVersionTask extends \Phing\Task
 {
 	/**
 	 * The path to the repository containing all the extensions

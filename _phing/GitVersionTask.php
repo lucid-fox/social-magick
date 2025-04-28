@@ -27,7 +27,7 @@ putenv("DYLD_LIBRARY_PATH=''");
  * @license   GNU GPL version 3 or, at your option, any later version
  * @author    nicholas
  */
-class GitVersionTask extends Task
+class GitVersionTask extends \Phing\Task
 {
 	/**
 	 * Git.date

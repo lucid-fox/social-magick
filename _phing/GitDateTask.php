@@ -15,7 +15,7 @@
 
 //require_once 'phing/Task.php';
 
-class GitDateTask extends Task
+class GitDateTask extends \Phing\Task
 {
 	/**
 	 * Git.date
